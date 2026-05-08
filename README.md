@@ -32,6 +32,7 @@ Debido al tamaño de los archivos, los datasets procesados y finales no se encue
 Para instalar las dependencias necesarias, ejecuta:
 
 ```bash
+python -m venv -venv
 pip install -r requirements.txt
 ```
 
