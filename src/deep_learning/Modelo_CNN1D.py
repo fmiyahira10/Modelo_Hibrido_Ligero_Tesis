@@ -76,11 +76,16 @@ pesos_cifrado = compute_class_weight(
     y=y_train_cifrado
 )
 
-# Convertimos los pesos a un diccionario para inyectarlo en Keras
-# Al asignarle el nombre de la capa, Keras sabe a qué salida aplicar estos pesos
-dict_pesos = {
-    'Salida_Fase1_Cifrado': {0: pesos_cifrado[0], 1: pesos_cifrado[1]}
-}
+# En Keras, class_weight no soporta un diccionario de diccionarios para modelos multi-salida.
+# La solución correcta es usar sample_weight. Creamos un arreglo con los pesos de muestra.
+print("Convirtiendo pesos de clase a pesos de muestra (sample_weight)...")
+sample_weights_cifrado = np.ones(shape=(len(y_train_cifrado),))
+sample_weights_cifrado[y_train_cifrado == 0] = pesos_cifrado[0]
+sample_weights_cifrado[y_train_cifrado == 1] = pesos_cifrado[1]
+
+# Como tenemos dos salidas, Keras nos pide un arreglo de pesos para cada una.
+# Para el ataque (Fase 2) le damos peso de 1.0 a todo para no alterarlo.
+sample_weights_ataque = np.ones(shape=(len(y_train_ataque),))
 
 print(f"Peso para Tráfico Normal (Clase 0): {pesos_cifrado[0]:.4f}")
 print(f"Peso para Tráfico Cifrado (Clase 1): {pesos_cifrado[1]:.4f} <- ¡El modelo le prestará muchísima más atención!")
@@ -91,21 +96,39 @@ print(f"Peso para Tráfico Cifrado (Clase 1): {pesos_cifrado[1]:.4f} <- ¡El mod
 print("\nIniciando el entrenamiento...")
 historia = modelo_cnn.fit(
     X_train_cnn, 
-    # Le pasamos las etiquetas reales para las dos salidas
-    {'Salida_Fase1_Cifrado': y_train_cifrado, 'Salida_Fase2_Ataque': y_train_ataque},
+    # Le pasamos las etiquetas reales para las dos salidas en forma de lista [cifrado, ataque]
+    [y_train_cifrado, y_train_ataque],
     
     # Validation data nos permite ver en tiempo real si el modelo está memorizando (overfitting) o generalizando bien
     validation_data=(
         X_test_cnn, 
-        {'Salida_Fase1_Cifrado': y_test_cifrado, 'Salida_Fase2_Ataque': y_test_ataque}
+        [y_test_cifrado, y_test_ataque]
     ),
+    
+    # Inyectamos los pesos de muestra correspondientes a cada salida en el mismo orden
+    sample_weight=[sample_weights_cifrado, sample_weights_ataque],
     
     epochs=15, # Empezamos con 15 iteraciones (épocas) para probar
     batch_size=512, # Un lote grande hace que el entrenamiento sea veloz
-    class_weight=dict_pesos, # Inyectamos los pesos para proteger la clase minoritaria
     verbose=1
 )
 
 # Al terminar, guardamos el modelo entrenado completo
 modelo_cnn.save("Modelo_CNN1D_Hibrido.h5")
-print("\n¡Entrenamiento finalizado y modelo guardado!")
+print("\n¡Entrenamiento finalizado y modelo multitarea guardado!")
+
+# ---------------------------------------------------------
+# 8. EXTRACCIÓN DE CARACTERÍSTICAS PARA MACHINE LEARNING
+# ---------------------------------------------------------
+# Para que tu modelo devuelva las mejores características a Machine Learning,
+# creamos un "submodelo" que va desde la entrada hasta la capa de cuello de botella (bottleneck)
+print("\nCreando el extractor de características...")
+extractor_features = Model(
+    inputs=modelo_cnn.input, 
+    outputs=modelo_cnn.get_layer('Capa_Extractora_Features').output,
+    name='Extractor_Features'
+)
+
+# Guardamos el extractor para cargarlo fácilmente en la fase de Machine Learning
+extractor_features.save("Extractor_Features_CNN1D.h5")
+print("¡Modelo extractor de características guardado con éxito como 'Extractor_Features_CNN1D.h5'!")
