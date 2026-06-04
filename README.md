@@ -39,3 +39,14 @@ pip install -r requirements.txt
 ## Notas sobre los Datos
 
 Debido al gran tamaño de los datasets originales (CICIDS2017, Darknet, UNSW-NB15), los archivos dentro de la carpeta `data/` están excluidos del repositorio de Git mediante el archivo `.gitignore`. Asegúrate de colocar los archivos correspondientes en `data/raw/` antes de ejecutar los scripts de procesamiento.
+
+
+
+Dataset Vector Ataque:
+==================================================
+     MATRICES EXPORTADAS MEDIANTE ROBUSTSCALER
+==================================================
+X_train_attack: (870778, 13)
+X_val_attack  : (610168, 13)
+X_test_attack : (610168, 13)
+==================================================

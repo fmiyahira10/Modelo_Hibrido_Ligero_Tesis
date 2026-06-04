@@ -27,6 +27,7 @@ wheels/
 *.egg
 
 .gemini
+.antigravitycli
 
 # Jupyter Notebooks
 .ipynb_checkpoints/
