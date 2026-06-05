@@ -88,3 +88,4 @@ src/Results/*.pkl
 .DS_Store
 Thumbs.db
 desktop.ini
+/models
