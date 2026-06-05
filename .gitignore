@@ -47,7 +47,10 @@ data/final/*
 models/*.pkl
 !models/.gitkeep
 
-Results/
+Results/*.pkl
+!Results/.gitkeep
+
+
 
 # Sistema
 .DS_Store
