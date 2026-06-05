@@ -47,6 +47,8 @@ data/final/*
 models/*.pkl
 !models/.gitkeep
 
+Results/
+
 # Sistema
 .DS_Store
 Thumbs.db
