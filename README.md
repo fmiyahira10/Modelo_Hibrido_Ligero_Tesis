@@ -50,3 +50,13 @@ X_train_attack: (870778, 13)
 X_val_attack  : (610168, 13)
 X_test_attack : (610168, 13)
 ==================================================
+
+
+Dataset Cifrado:
+============================================================
+     INFRAESTRUCTURA DE DATOS DE CIFRADO CONCLUIDA
+=============================================================
+Tensor de Entrenamiento (X_train_encryption) : (31871, 62)
+Tensor de Validación    (X_val_encryption)   : (6829, 62)
+Tensor de Prueba Final  (X_test_encryption)  : (6830, 62)
+=============================================================
