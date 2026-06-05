@@ -1,15 +1,16 @@
 import pandas as pd
 import numpy as np
 import os
+from pathlib import Path
 
 # ===================================================================
 # 1. CONFIGURACIÓN DE RUTAS RELATIVAS AUTOMÁTICAS
 # ===================================================================
-# Detecta la ubicación actual del script (asumiendo que corre desde src/ o la raíz)
-BASE_DIR = r'C:\Users\i21327\Desktop\Tesis\Modelo_Hibrido_Ligero_Tesis'
+# Raíz del proyecto: sube 3 niveles desde src/EDA/Cifrado_EDA/
+BASE_DIR = Path(__file__).resolve().parents[3]
 
-# Construcción de rutas relativas basadas en la estructura de tu proyecto
-ruta_entrada = os.path.join(BASE_DIR, 'data', 'processed', 'Darknet_Etiquetado_Grupos.parquet')
+# Construcción de rutas relativas basadas en la estructura del proyecto
+ruta_entrada = BASE_DIR / 'data' / 'processed' / 'Darknet_Etiquetado_Grupos.parquet'
 
 print(f"Buscando dataset en ruta relativa: {ruta_entrada}")
 if not os.path.exists(ruta_entrada):

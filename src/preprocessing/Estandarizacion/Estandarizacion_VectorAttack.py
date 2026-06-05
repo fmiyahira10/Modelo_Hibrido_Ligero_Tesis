@@ -3,11 +3,15 @@ import numpy as np
 from sklearn.model_selection import train_test_split
 from sklearn.preprocessing import RobustScaler, LabelEncoder
 import joblib
+from pathlib import Path
+import os
 
 # ===================================================================
 # 1. CARGA DE LA MATRIZ DEPURADA
 # ===================================================================
-archivo_entrada = r'C:\Users\Felix\Desktop\Tesis\data\processed\Attack_Dataset_Clean.parquet'
+# Raíz del proyecto: sube 3 niveles desde src/preprocessing/Estandarizacion/
+BASE_DIR = Path(__file__).resolve().parents[3]
+archivo_entrada = BASE_DIR / 'data' / 'processed' / 'Attack_Dataset_Clean.parquet'
 print(f"Abriendo matriz depurada: {archivo_entrada}")
 df = pd.read_parquet(archivo_entrada, engine='pyarrow')
 
@@ -23,7 +27,7 @@ target = 'attack_vector'
 # ===================================================================
 le_attack = LabelEncoder()
 df['attack_vector_encoded'] = le_attack.fit_transform(df[target])
-joblib.dump(le_attack, 'label_encoder_attack.pkl')
+joblib.dump(le_attack, os.path.join(BASE_DIR, 'models', 'label_encoder_attack.pkl'))
 
 X = df[columnas_features]
 y = df['attack_vector_encoded']
@@ -69,17 +73,17 @@ X_val_scaled = scaler.transform(X_val)
 X_test_scaled = scaler.transform(X_test)
 
 # Guardar escalador robusto
-joblib.dump(scaler, 'robust_scaler_attack.pkl')
+joblib.dump(scaler, os.path.join(BASE_DIR, 'models', 'robust_scaler_attack.pkl'))
 
 # ===================================================================
 # 6. SERIALIZACIÓN DE MATRICES FINALES
 # ===================================================================
-np.save('X_train_attack.npy', X_train_scaled)
-np.save('X_val_attack.npy', X_val_scaled)
-np.save('X_test_attack.npy', X_test_scaled)
-np.save('y_train_attack.npy', y_train.to_numpy())
-np.save('y_val_attack.npy', y_val.to_numpy())
-np.save('y_test_attack.npy', y_test.to_numpy())
+np.save(os.path.join(BASE_DIR, 'data', 'final', 'X_train_attack.npy'), X_train_scaled)
+np.save(os.path.join(BASE_DIR, 'data', 'final', 'X_val_attack.npy'), X_val_scaled)
+np.save(os.path.join(BASE_DIR, 'data', 'final', 'X_test_attack.npy'), X_test_scaled)
+np.save(os.path.join(BASE_DIR, 'data', 'final', 'y_train_attack.npy'), y_train.to_numpy())
+np.save(os.path.join(BASE_DIR, 'data', 'final', 'y_val_attack.npy'), y_val.to_numpy())
+np.save(os.path.join(BASE_DIR, 'data', 'final', 'y_test_attack.npy'), y_test.to_numpy())
 
 print("\n" + "="*50)
 print("     MATRICES EXPORTADAS MEDIANTE ROBUSTSCALER")

@@ -2,6 +2,7 @@ import pandas as pd
 import numpy as np
 import matplotlib.pyplot as plt
 import seaborn as sns
+from pathlib import Path
 
 # Configuración estética para artículos (estilo IEEE/Elsevier)
 plt.rcParams.update({
@@ -15,7 +16,9 @@ plt.rcParams.update({
 # ===================================================================
 # 1. CARGA DEL DATASET PURIFICADO
 # ===================================================================
-archivo_limpio = r'C:\Users\Felix\Desktop\Tesis\data\processed\Attack_Dataset_Clean.parquet'
+# Raíz del proyecto: sube 3 niveles desde src/EDA/Vector_attack_EDA/
+BASE_DIR = Path(__file__).resolve().parents[3]
+archivo_limpio = BASE_DIR / 'data' / 'processed' / 'Attack_Dataset_Clean.parquet'
 print(f"Cargando dataset purificado para análisis de outliers: {archivo_limpio}")
 df = pd.read_parquet(archivo_limpio, engine='pyarrow')
 

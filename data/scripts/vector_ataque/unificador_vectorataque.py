@@ -1,11 +1,15 @@
 import pandas as pd
 import numpy as np
+from pathlib import Path
 
 # ===================================================================
 # 1. CONFIGURACIÓN DE RUTA DE INGRESO DE DATOS
 # ===================================================================
-path_CICIDS2017 = r'C:\Users\Felix\Desktop\Tesis\data\processed\CICIDS2017.parquet'
-path_UNSW = r'C:\Users\Felix\Desktop\Tesis\data\processed\UNSW-NB15-V3.parquet'
+# Raíz del proyecto: sube 3 niveles desde data/scripts/vector_ataque/
+BASE_DIR = Path(__file__).resolve().parents[3]
+
+path_CICIDS2017 = BASE_DIR / 'data' / 'processed' / 'CICIDS2017.parquet'
+path_UNSW       = BASE_DIR / 'data' / 'processed' / 'UNSW-NB15-V3.parquet'
 
 print("Cargando datasets para el modelo de clasificación de ataques...")
 df_IDS2017 = pd.read_parquet(path_CICIDS2017, engine='pyarrow')
@@ -109,5 +113,5 @@ print(f"\n¡Unificación de características completada con éxito!")
 print(f"Dimensiones de la matriz integrada para Ataques: {df_ataques_unificado.shape}")
 
 # Guardado en formato Parquet
-df_ataques_unificado.to_parquet('Ataques_Unificado_Raw.parquet', engine='pyarrow')
+df_ataques_unificado.to_parquet(BASE_DIR / 'data' / 'processed' / 'Ataques_Unificado_Raw.parquet', engine='pyarrow')
 print("Archivo 'Ataques_Unificado_Raw.parquet' exportado correctamente.")

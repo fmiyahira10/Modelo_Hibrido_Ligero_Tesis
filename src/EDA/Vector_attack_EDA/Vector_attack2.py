@@ -2,6 +2,7 @@ import pandas as pd
 import numpy as np
 import matplotlib.pyplot as plt
 import seaborn as sns
+from pathlib import Path
 
 # Configuración de estética académica (Estilo IEEE/Elsevier)
 plt.rcParams.update({
@@ -16,7 +17,9 @@ plt.rcParams.update({
 # ===================================================================
 # 1. CARGA Y LIMPIEZA INICIAL DE SEGURIDAD (Basada en Diagnóstico)
 # ===================================================================
-archivo_parquet = r'C:\Users\Felix\Desktop\Tesis\data\processed\Attack_Dataset_Homologado.parquet'
+# Raíz del proyecto: sube 3 niveles desde src/EDA/Vector_attack_EDA/
+BASE_DIR = Path(__file__).resolve().parents[3]
+archivo_parquet = BASE_DIR / 'data' / 'processed' / 'Attack_Dataset_Homologado.parquet'
 print("Cargando dataset para procesamiento estadístico y gráfico...")
 df = pd.read_parquet(archivo_parquet, engine='pyarrow')
 

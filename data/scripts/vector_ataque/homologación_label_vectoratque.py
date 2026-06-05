@@ -1,10 +1,13 @@
 import pandas as pd
 import numpy as np
+from pathlib import Path
 
 # ===================================================================
 # 1. CARGA DEL DATASET UNIFICADO
 # ===================================================================
-archivo_entrada = r'C:\Users\Felix\Desktop\Tesis\data\processed\Ataques_Unificado_Raw.parquet'
+# Raíz del proyecto: sube 3 niveles desde data/scripts/vector_ataque/
+BASE_DIR = Path(__file__).resolve().parents[3]
+archivo_entrada = BASE_DIR / 'data' / 'processed' / 'Ataques_Unificado_Raw.parquet'
 print(f"Cargando dataset unificado desde {archivo_entrada}...")
 df = pd.read_parquet(archivo_entrada, engine='pyarrow')
 
@@ -83,6 +86,6 @@ print("="*50)
 # ===================================================================
 # 5. GUARDAR DATASET HOMOLOGADO
 # ===================================================================
-archivo_salida = r'C:\Users\Felix\Desktop\Tesis\data\processed\Attack_Dataset_Homologado.parquet'
+archivo_salida = BASE_DIR / 'data' / 'processed' / 'Attack_Dataset_Homologado.parquet'
 df.to_parquet(archivo_salida, engine='pyarrow')
 print(f"\nDataset guardado exitosamente en: '{archivo_salida}'")

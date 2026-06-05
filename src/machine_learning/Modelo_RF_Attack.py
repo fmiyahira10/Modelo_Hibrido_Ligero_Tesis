@@ -5,11 +5,13 @@ from sklearn.ensemble import RandomForestClassifier
 from sklearn.metrics import accuracy_score, precision_score, recall_score, f1_score, fbeta_score, matthews_corrcoef, classification_report
 import os
 import joblib
+from pathlib import Path
 
 # ===================================================================
 # 1. CONFIGURACIÓN DE RUTA RELATIVA Y CARGA DE DATOS
 # ===================================================================
-BASE_DIR = r'C:\Users\i21327\Desktop\Tesis\Modelo_Hibrido_Ligero_Tesis'
+# Raíz del proyecto: sube 2 niveles desde src/machine_learning/
+BASE_DIR = Path(__file__).resolve().parents[2]
 
 print("Cargando matrices NumPy y codificadores...")
 X_train_raw = np.load(os.path.join(BASE_DIR,'data','final', 'X_train_attack.npy'))
@@ -55,7 +57,7 @@ rf_classifier.fit(X_train_embeddings, y_train)
 print("-> Modelo Random Forest entrenado exitosamente.")
 
 # Guardar el clasificador entrenado para el motor de correlación final
-joblib.dump(rf_classifier, os.path.join(BASE_DIR, 'attack_classifier_rf.pkl'))
+joblib.dump(rf_classifier, os.path.join(BASE_DIR, 'src', 'Results', 'attack_classifier_rf.pkl'))
 
 # ===================================================================
 # 4. FASE 7: EVALUACIÓN EXPERIMENTAL MEDIANTE MÉTRICAS DE TESIS

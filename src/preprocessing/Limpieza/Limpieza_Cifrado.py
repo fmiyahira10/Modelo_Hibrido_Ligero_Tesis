@@ -1,11 +1,13 @@
 import pandas as pd
 import numpy as np
 import os
+from pathlib import Path
 
 # ===================================================================
 # 1. CONFIGURACIÓN DE RUTA RELATIVA EXACTA
 # ===================================================================
-BASE_DIR = r'C:\Users\i21327\Desktop\Tesis\Modelo_Hibrido_Ligero_Tesis'
+# Raíz del proyecto: sube 3 niveles desde src/preprocessing/Limpieza/
+BASE_DIR = Path(__file__).resolve().parents[3]
 ruta_entrada = os.path.join(BASE_DIR, 'data', 'processed', 'Darknet_Etiquetado_Grupos.parquet')
 
 print(f"Iniciando pipeline de Limpieza Fina sobre: {ruta_entrada}")

@@ -1,11 +1,15 @@
 import pandas as pd
 import numpy as np
+from pathlib import Path
 
 # ===================================================================
 # CONFIGURACIÓN DE RUTA DE ARCHIVOS
 # ===================================================================
-path_CICIDS2017 = r'C:\Users\Felix\Desktop\Tesis\data\processed\CICIDS2017.parquet'
-path_UNSW = r'C:\Users\Felix\Desktop\Tesis\data\processed\UNSW-NB15-V3.parquet'
+# Raíz del proyecto: sube 3 niveles desde data/scripts/vector_ataque/
+BASE_DIR = Path(__file__).resolve().parents[3]
+
+path_CICIDS2017 = BASE_DIR / 'data' / 'processed' / 'CICIDS2017.parquet'
+path_UNSW       = BASE_DIR / 'data' / 'processed' / 'UNSW-NB15-V3.parquet'
 
 print("Cargando metadatos estructurados de las fuentes reales...")
 # Cargamos una muestra mínima (head) para no consumir RAM innecesaria en la fase exploratoria

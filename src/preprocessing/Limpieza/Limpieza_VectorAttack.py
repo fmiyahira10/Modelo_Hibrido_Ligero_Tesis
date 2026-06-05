@@ -1,10 +1,14 @@
 import pandas as pd
 import numpy as np
+from pathlib import Path
+import os
 
 # ===================================================================
 # 1. CARGA DEL DATASET MAESTRO DE ATAQUES
 # ===================================================================
-archivo_entrada = r'C:\Users\Felix\Desktop\Tesis\data\processed\Attack_Dataset_Homologado.parquet'
+# Raíz del proyecto: sube 3 niveles desde src/preprocessing/Limpieza/
+BASE_DIR = Path(__file__).resolve().parents[3]
+archivo_entrada = BASE_DIR / 'data' / 'processed' / 'Attack_Dataset_Homologado.parquet'
 print(f"Iniciando limpieza fina sobre: {archivo_entrada}")
 df = pd.read_parquet(archivo_entrada, engine='pyarrow')
 
@@ -55,6 +59,6 @@ print(f"Reducción del       : {((dimensiones_originales[0] - df.shape[0]) / dim
 print("="*50)
 
 # Guardamos el archivo listo para la división y el balanceo
-archivo_salida = r'C:\Users\Felix\Desktop\Tesis\data\processed\Attack_Dataset_Clean.parquet'
+archivo_salida = BASE_DIR / 'data' / 'processed' / 'Attack_Dataset_Clean.parquet'
 df.to_parquet(archivo_salida, engine='pyarrow')
 print(f"\nMatriz depurada exportada con éxito en: '{archivo_salida}'")

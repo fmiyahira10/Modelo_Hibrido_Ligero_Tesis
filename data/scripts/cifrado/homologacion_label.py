@@ -1,9 +1,13 @@
 import pandas as pd
+from pathlib import Path
+
+# Raíz del proyecto: sube 3 niveles desde data/scripts/cifrado/
+BASE_DIR = Path(__file__).resolve().parents[3]
 
 # ===================================================================
 # 1. CARGA DEL DATASET ORIGINAL DE DARKNET
 # ===================================================================
-path_darknet = r'C:\Users\Felix\Desktop\Tesis\data\processed\Darknet.parquet'  # Reemplaza con tu archivo local (.parquet o .csv)
+path_darknet = BASE_DIR / 'data' / 'processed' / 'Darknet.parquet'
 print("Cargando dataset CIC-Darknet2020 original...")
 df_dark = pd.read_parquet(path_darknet, engine='pyarrow')
 
@@ -42,6 +46,6 @@ print("="*50)
 # ===================================================================
 # 4. GUARDAR DATASET CON NUEVAS ETIQUETAS
 # ===================================================================
-archivo_salida = r'C:\Users\Felix\Desktop\Tesis\data\processed\Darknet_Etiquetado_Grupos.parquet'
+archivo_salida = BASE_DIR / 'data' / 'processed' / 'Darknet_Etiquetado_Grupos.parquet'
 df_dark.to_parquet(archivo_salida, engine='pyarrow')
 print(f"\nDataset guardado con todas sus columnas y nuevos grupos en: '{archivo_salida}'")

@@ -4,11 +4,13 @@ from tensorflow.keras.models import Model
 from tensorflow.keras.layers import Input, Conv1D, MaxPooling1D, Flatten, Dense, Dropout, BatchNormalization
 from tensorflow.keras.callbacks import EarlyStopping, ModelCheckpoint
 import os
+from pathlib import Path
 
 # ===================================================================
 # 1. CONFIGURACIÓN DE RUTAS RELATIVAS Y CARGA DE MATRICES
 # ===================================================================
-BASE_DIR = r'C:\Users\i21327\Desktop\Tesis\Modelo_Hibrido_Ligero_Tesis'
+# Raíz del proyecto: sube 2 niveles desde src/deep_learning/
+BASE_DIR = Path(__file__).resolve().parents[2]
 
 print("Cargando matrices NumPy de la Fase 3...")
 X_train = np.load(os.path.join(BASE_DIR,'data' ,'final', 'X_train_attack.npy'))
@@ -75,7 +77,7 @@ callbacks_list = [
         verbose=1
     ),
     ModelCheckpoint(
-        filepath=os.path.join(BASE_DIR, 'best_cnn_attack_model.keras'),
+        filepath=os.path.join(BASE_DIR, 'src', 'Embedding', 'best_cnn_attack_model.keras'),
         monitor='val_loss',
         save_best_only=True,
         verbose=1

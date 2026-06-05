@@ -3,6 +3,7 @@ import numpy as np
 import os
 import matplotlib.pyplot as plt
 import seaborn as sns
+from pathlib import Path
 
 # Configuración de tipografía y estilo estilo IEEE/Elsevier
 plt.rcParams.update({
@@ -17,8 +18,9 @@ plt.rcParams.update({
 # ===================================================================
 # 1. CONFIGURACIÓN DE RUTAS RELATIVAS EXACTAS
 # ===================================================================
-BASE_DIR = r'C:\Users\i21327\Desktop\Tesis\Modelo_Hibrido_Ligero_Tesis'
-ruta_entrada = os.path.join(BASE_DIR, 'data', 'processed', 'Darknet_Etiquetado_Grupos.parquet')
+# Raíz del proyecto: sube 3 niveles desde src/EDA/Cifrado_EDA/
+BASE_DIR = Path(__file__).resolve().parents[3]
+ruta_entrada = BASE_DIR / 'data' / 'processed' / 'Darknet_Etiquetado_Grupos.parquet'
 
 print(f"Leyendo matriz de Darknet desde: {ruta_entrada}")
 if not os.path.exists(ruta_entrada):
@@ -63,7 +65,7 @@ ax.grid(True, axis='x', linestyle=':', alpha=0.6)
 
 plt.tight_layout()
 # Guardar directamente sin usar plt.show()
-ruta_grafico_1 = os.path.join(BASE_DIR, 'darknet_auditoria_sparsity.png')
+ruta_grafico_1 = Path(__file__).resolve().parent / 'darknet_auditoria_sparsity.png'
 plt.savefig(ruta_grafico_1, dpi=300)
 plt.close()
 print(f"-> Archivo guardado con éxito en: {ruta_grafico_1}")
@@ -106,7 +108,7 @@ ax.set_ylabel("Descriptores de Flujo")
 ax.grid(True, axis='x', linestyle=':', alpha=0.5)
 
 plt.tight_layout()
-ruta_grafico_2 = os.path.join(BASE_DIR, 'darknet_distribucion_outliers.png')
+ruta_grafico_2 = Path(__file__).resolve().parent / 'darknet_distribucion_outliers.png'
 plt.savefig(ruta_grafico_2, dpi=300)
 plt.close()
 print(f"-> Archivo guardado con éxito en: {ruta_grafico_2}")

@@ -6,6 +6,7 @@ import matplotlib.pyplot as plt
 import seaborn as sns
 import os
 import joblib
+from pathlib import Path
 
 # Configuración estética profesional para el artículo
 plt.rcParams.update({
@@ -19,7 +20,8 @@ plt.rcParams.update({
 # ===================================================================
 # 1. CONFIGURACIÓN DE RUTAS Y CARGA DE DATOS DE PRUEBA
 # ===================================================================
-BASE_DIR = r'C:\Users\i21327\Desktop\Tesis\Modelo_Hibrido_Ligero_Tesis'
+# Raíz del proyecto: sube 2 niveles desde src/deep_learning/
+BASE_DIR = Path(__file__).resolve().parents[2]
 
 print("Cargando datos de prueba independientes...")
 X_test = np.load(os.path.join(BASE_DIR,'data' ,'final', 'X_test_attack.npy'))
@@ -89,7 +91,7 @@ ax.legend(title="Macro-Vectores de Ataque", bbox_to_anchor=(1.05, 1), loc='upper
 ax.grid(True, linestyle=':', alpha=0.5)
 
 plt.tight_layout()
-ruta_grafico = os.path.join(BASE_DIR, 'espacio_latente_tsne_attacks.png')
+ruta_grafico = os.path.join(BASE_DIR, 'src', 'Embedding', 'espacio_latente_tsne_attacks.png')
 plt.savefig(ruta_grafico, dpi=300)
 plt.close()
 

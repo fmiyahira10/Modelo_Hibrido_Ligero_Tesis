@@ -4,11 +4,13 @@ import os
 from sklearn.model_selection import train_test_split
 from sklearn.preprocessing import RobustScaler, LabelEncoder
 import joblib
+from pathlib import Path
 
 # ===================================================================
 # 1. CONFIGURACIÓN DE RUTA RELATIVAS AUTOMÁTICAS
 # ===================================================================
-BASE_DIR = r'C:\Users\i21327\Desktop\Tesis\Modelo_Hibrido_Ligero_Tesis'
+# Raíz del proyecto: sube 3 niveles desde src/preprocessing/Estandarizacion/
+BASE_DIR = Path(__file__).resolve().parents[3]
 ruta_entrada = os.path.join(BASE_DIR, 'data', 'processed', 'Encryption_Dataset_Clean.parquet')
 
 print(f"Abriendo matriz depurada de cifrado: {ruta_entrada}")
@@ -26,7 +28,7 @@ le_encryption = LabelEncoder()
 df['target_encoded'] = le_encryption.fit_transform(df[target])
 
 # Serialización del codificador para la etapa final de inferencia paralela
-joblib.dump(le_encryption, os.path.join(BASE_DIR, 'label_encoder_encryption.pkl'))
+joblib.dump(le_encryption, os.path.join(BASE_DIR, 'models', 'label_encoder_encryption.pkl'))
 
 print("Mapeo binario de control establecido:")
 for clase, codigo in zip(le_encryption.classes_, le_encryption.transform(le_encryption.classes_)):
@@ -66,20 +68,20 @@ X_val_scaled = scaler_robust.transform(X_val_raw)
 X_test_scaled = scaler_robust.transform(X_test_raw)
 
 # Serialización del escalador robusto de encriptación
-joblib.dump(scaler_robust, os.path.join(BASE_DIR, 'robust_scaler_encryption.pkl'))
+joblib.dump(scaler_robust, os.path.join(BASE_DIR, 'models', 'robust_scaler_encryption.pkl'))
 
 # ===================================================================
 # 5. SERIALIZACIÓN MATRICIAL NUMPY (.npy) PARA TENSORFLOW
 # ===================================================================
 print("\nExportando matrices de tensores a disco duro...")
-np.save(os.path.join(BASE_DIR, 'X_train_encryption.npy'), X_train_scaled)
-np.save(os.path.join(BASE_DIR, 'X_val_encryption.npy'), X_val_scaled)
+np.save(os.path.join(BASE_DIR, 'data', 'final', 'X_train_encryption.npy'), X_train_scaled)
+np.save(os.path.join(BASE_DIR, 'data', 'final', 'X_val_encryption.npy'), X_val_scaled)
 # El conjunto de prueba se almacena intacto para la Fase 7 (Evaluación Experimental)
-np.save(os.path.join(BASE_DIR, 'X_test_encryption.npy'), X_test_scaled)
+np.save(os.path.join(BASE_DIR, 'data', 'final', 'X_test_encryption.npy'), X_test_scaled)
 
-np.save(os.path.join(BASE_DIR, 'y_train_encryption.npy'), y_train.to_numpy())
-np.save(os.path.join(BASE_DIR, 'y_val_encryption.npy'), y_val.to_numpy())
-np.save(os.path.join(BASE_DIR, 'y_test_encryption.npy'), y_test.to_numpy())
+np.save(os.path.join(BASE_DIR, 'data', 'final', 'y_train_encryption.npy'), y_train.to_numpy())
+np.save(os.path.join(BASE_DIR, 'data', 'final', 'y_val_encryption.npy'), y_val.to_numpy())
+np.save(os.path.join(BASE_DIR, 'data', 'final', 'y_test_encryption.npy'), y_test.to_numpy())
 
 print("\n" + "="*60)
 print("     INFRAESTRUCTURA DE DATOS DE CIFRADO CONCLUIDA")

@@ -3,6 +3,7 @@ import numpy as np
 import os
 import matplotlib.pyplot as plt
 import seaborn as sns
+from pathlib import Path
 
 # Configuración de tipografía y estilo académico para el artículo
 plt.rcParams.update({
@@ -17,8 +18,9 @@ plt.rcParams.update({
 # ===================================================================
 # 1. CONFIGURACIÓN DE RUTA Y CARGA DE DATOS
 # ===================================================================
-BASE_DIR = r'C:\Users\i21327\Desktop\Tesis\Modelo_Hibrido_Ligero_Tesis'
-ruta_entrada = os.path.join(BASE_DIR, 'data', 'processed', 'Darknet_Etiquetado_Grupos.parquet')
+# Raíz del proyecto: sube 3 niveles desde src/EDA/Cifrado_EDA/
+BASE_DIR = Path(__file__).resolve().parents[3]
+ruta_entrada = BASE_DIR / 'data' / 'processed' / 'Darknet_Etiquetado_Grupos.parquet'
 
 print(f"Cargando dataset para Matriz de Spearman: {ruta_entrada}")
 df = pd.read_parquet(ruta_entrada, engine='pyarrow')
@@ -85,7 +87,7 @@ plt.yticks(rotation=0)
 plt.tight_layout()
 
 # Guardar directo en disco con alta densidad de pixeles
-ruta_salida_png = os.path.join(BASE_DIR, 'darknet_correlacion_spearman.png')
+ruta_salida_png = Path(__file__).resolve().parent / 'darknet_correlacion_spearman.png'
 plt.savefig(ruta_salida_png, dpi=300)
 plt.close()
 

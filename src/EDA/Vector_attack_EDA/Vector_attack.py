@@ -1,10 +1,13 @@
 import pandas as pd
 import numpy as np
+from pathlib import Path
 
 # ===================================================================
 # 1. CARGA DEL DATASET DE ATAQUES HOMOLOGADO
 # ===================================================================
-archivo_ataques = r'C:\Users\Felix\Desktop\Tesis\data\processed\Attack_Dataset_Homologado.parquet'
+# Raíz del proyecto: sube 3 niveles desde src/EDA/Vector_attack_EDA/
+BASE_DIR = Path(__file__).resolve().parents[3]
+archivo_ataques = BASE_DIR / 'data' / 'processed' / 'Attack_Dataset_Homologado.parquet'
 print(f"Abriendo {archivo_ataques} para análisis estadístico profundo...")
 df = pd.read_parquet(archivo_ataques, engine='pyarrow')
 

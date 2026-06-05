@@ -8,6 +8,7 @@ import matplotlib.pyplot as plt
 import seaborn as sns
 import os
 import joblib
+from pathlib import Path
 
 # Configuración de estética académica para publicaciones (IEEE/Elsevier)
 plt.rcParams.update({
@@ -21,7 +22,8 @@ plt.rcParams.update({
 # ===================================================================
 # 1. CONFIGURACIÓN DE RUTAS RELATIVAS Y CARGA DE MATRICES (DARKNET)
 # ===================================================================
-BASE_DIR = r'C:\Users\i21327\Desktop\Tesis\Modelo_Hibrido_Ligero_Tesis'
+# Raíz del proyecto: sube 2 niveles desde src/deep_learning/
+BASE_DIR = Path(__file__).resolve().parents[2]
 
 print("Cargando matrices matriciales NumPy del carril de cifrado...")
 X_train = np.load(os.path.join(BASE_DIR,'data','final', 'X_train_encryption.npy'))
@@ -83,7 +85,7 @@ model_encryption.compile(
 callbacks_list = [
     EarlyStopping(monitor='val_loss', patience=5, restore_best_weights=True, verbose=1),
     ModelCheckpoint(
-        filepath=os.path.join(BASE_DIR, 'best_cnn_encryption_model.keras'),
+        filepath=os.path.join(BASE_DIR, 'src', 'Embedding', 'best_cnn_encryption_model.keras'),
         monitor='val_loss', save_best_only=True, verbose=1
     )
 ]
@@ -132,7 +134,7 @@ ax.legend(title="Estado de Encriptación", loc='best')
 ax.grid(True, linestyle=':', alpha=0.5)
 
 plt.tight_layout()
-ruta_grafico = os.path.join(BASE_DIR, 'espacio_latente_tsne_encryption.png')
+ruta_grafico = os.path.join(BASE_DIR, 'src', 'Embedding', 'espacio_latente_tsne_encryption.png')
 plt.savefig(ruta_grafico, dpi=300)
 plt.close()
 
