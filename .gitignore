@@ -26,38 +26,65 @@ wheels/
 .installed.cfg
 *.egg
 
-.gemini
-.antigravitycli
+# Herramientas de desarrollo / agentes IA
+.gemini/
+.antigravitycli/
 
 # Jupyter Notebooks
 .ipynb_checkpoints/
 */.ipynb_checkpoints/*
 
-# Datos (Archivos pesados ignorados para GitHub)
-# Se mantienen las carpetas mediante .gitkeep
+# ============================================================
+# DATOS (archivos pesados ignorados para GitHub)
+# Se mantienen las carpetas vacías mediante .gitkeep
+# ============================================================
+
+# data/raw — archivos planos, comprimidos y subcarpetas con CSVs
 data/raw/*
 !data/raw/.gitkeep
+data/raw/**/*.csv
+data/raw/**/*.pcap
+
+# data/processed — archivos Parquet (no estaban cubiertos antes)
 data/processed/*
 !data/processed/.gitkeep
+*.parquet
+
+# data/final — arrays NumPy (no estaban cubiertos antes)
 data/final/*
 !data/final/.gitkeep
+*.npy
 
-# Modelos y artefactos
-# Permitimos archivos .pkl (encoders/scalers) porque son pequeños y necesarios
-models/*.pkl
-!models/.gitkeep
+# ============================================================
+# MODELOS Y ARTEFACTOS
+# ============================================================
 
-Results/*.pkl
-!Results/.gitkeep
+# Modelos de ML (Random Forest, etc.) — archivos .pkl grandes
+# Los pkl pequeños de encoders/scalers en models/ SÍ se suben
+src/Results/*.pkl
+!src/Results/.gitkeep
 
+# Modelos de Deep Learning Keras (no estaban cubiertos antes)
+*.keras
 
+# Modelos en la raíz de /models (pkl grandes si los hubiera)
+# Nota: label_encoder y robust_scaler son pequeños y necesarios,
+# por eso NO se agregan aquí; solo se ignoran los que superan ~1 MB
+# Si quieres ignorarlos todos, descomenta la siguiente línea:
+# models/*.pkl
 
-# Sistema
-.DS_Store
-Thumbs.db
-
+# ============================================================
+# ARCHIVOS COMPRIMIDOS Y FORMATOS PESADOS (global)
+# ============================================================
 *.zip
 *.rar
 *.7z
 *.csv
 *.pcap
+
+# ============================================================
+# SISTEMA OPERATIVO
+# ============================================================
+.DS_Store
+Thumbs.db
+desktop.ini
