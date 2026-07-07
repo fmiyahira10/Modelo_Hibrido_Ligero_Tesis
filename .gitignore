@@ -63,6 +63,9 @@ data/final/*
 # Los pkl pequeños de encoders/scalers en models/ SÍ se suben
 src/Results/*.pkl
 !src/Results/.gitkeep
+src/ML_Simple/Resultados/*.pkl
+!src/ML_Simple/Resultados/.gitkeep
+
 
 # Modelos de Deep Learning Keras (no estaban cubiertos antes)
 *.keras
