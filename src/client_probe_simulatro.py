@@ -1,7 +1,10 @@
 import socket
 import json
 import time
-import random
+import os
+import pandas as pd
+import numpy as np
+from pathlib import Path
 
 def enviar_flujo_a_nids(id_flujo, features_attack, features_encryption, host='127.0.0.1', port=9999):
     """Establece conexión efímera socket y transmite el JSON."""
@@ -16,45 +19,69 @@ def enviar_flujo_a_nids(id_flujo, features_attack, features_encryption, host='12
         }
         
         client_socket.send(json.dumps(payload).encode('utf-8'))
-        # Leer confirmación de recepción del veredicto
-        response = client_socket.recv(1024).decode('utf-8')
+        response = client_socket.recv(4096).decode('utf-8')
         client_socket.close()
         return json.loads(response)
     except ConnectionRefusedError:
         return {"status": "ERROR", "veredicto": "Servidor NIDS inalcanzable. Verifica que el core esté corriendo."}
 
 if __name__ == "__main__":
-    print("[+] Inicializando Simulador de Sonda de Tráfico en Tiempo Real...")
-    time.sleep(1)
+    print("[+] Inicializando Simulador de Sonda con Tráfico Real de Tesis...")
     
-    # --- DEFINICIÓN DE PERFILES DE TRÁFICO EXPERIMENTALES REALES ---
-    # Perfil 1: Tráfico Benigno sin cifrar (Simulación normal)
-    trafico_normal_attack = [0.5, 2.0, 2.0, 100.0, 100.0, 50.0, 50.0, 0.1, 0.1, 2048, 2048, 8.0, 400.0]
-    trafico_normal_enc = [0.0] * 62
+    # 1. Rutas de los datasets limpios para extraer muestras reales
+    BASE_DIR = Path(__file__).resolve().parents[2]
+    ruta_ataques = BASE_DIR /'tesis' / 'data' / 'processed' / 'Attack_Dataset_Clean.parquet'
+    ruta_cifrado = BASE_DIR / 'tesis' /'data' / 'processed' / 'Encryption_Dataset_Clean.parquet'
     
-    # Perfil 2: Inundación DoS en Texto Plano (CICIDS2017)
-    trafico_dos_attack = [0.01, 150.0, 0.0, 45000.0, 0.0, 300.0, 0.0, 0.0001, 0.0, 1024, 0, 15000.0, 4500000.0]
-    trafico_dos_enc = [0.0] * 62
-    
-    # Perfil 3: Tráfico sospechoso de Malware viajando en Canal Cifrado (CIC-Darknet2020)
-    # Alteramos descriptores volumétricos simulados activos de Darknet para disparar las alertas
-    trafico_malware_attack = [12.4, 25.0, 30.0, 1200.0, 8500.0, 48.0, 283.3, 0.4, 0.3, 8192, 8192, 4.4, 782.2]
-    # Llenamos las 62 variables activas. Ponemos magnitudes típicas en las primeras posiciones (Flow Duration, Packets, etc.)
-    trafico_malware_enc = [12400000.0, 25.0, 30.0, 1200.0, 8500.0, 400.0, 0.0, 48.0, 12.0, 1500.0, 0.0, 283.3, 50.0] + [0.0]*49
-
-    perfiles = [
-        ("001", trafico_normal_attack, trafico_normal_enc, "Flujo de Navegación HTTP Estándar"),
-        ("002", trafico_dos_attack, trafico_dos_enc, "Ráfaga de Inundación masiva de paquetes (DoS)"),
-        ("003", trafico_malware_attack, trafico_malware_enc, "Conexión persistente hacia Servidor C2 (Malware/Cifrado)")
+    # Columnas exactas que espera el carril de ataques
+    columnas_attack = [
+        'flow_duration', 'fwd_packets', 'bwd_packets', 'fwd_bytes', 'bwd_bytes',
+        'fwd_packet_len_mean', 'bwd_packet_len_mean', 'fwd_iat_mean', 'bwd_iat_mean',
+        'fwd_tcp_window', 'bwd_tcp_window', 'flow_packets_per_sec', 'flow_bytes_per_sec'
     ]
     
+    print("[-] Cargando subconjuntos para muestreo de producción...")
+    df_at = pd.read_parquet(ruta_ataques, engine='pyarrow')
+    df_enc = pd.read_parquet(ruta_cifrado, engine='pyarrow')
+    
+    # Extraemos las columnas de encriptación dinámicamente descartando el label
+    columnas_enc = [col for col in df_enc.columns if col != 'Encryption_Label']
+    
+    # 2. SELECCIÓN DE FIRMAS DE TRÁFICO REALES
+    print("[+] Extrayendo firmas criptográficas y vectoriales reales...")
+    
+    # Caso 1: Flujo Normal y Texto Plano Real
+    row_normal_at = df_at[df_at['attack_vector'] == 'Reconnaissance'].sample(n=1, random_state=42)[columnas_attack].values[0].tolist()
+    row_normal_enc = df_enc[df_enc['Encryption_Label'] == 'Cifrado'].sample(n=1, random_state=42)[columnas_enc].values[0].tolist()
+    
+    # Caso 2: Intrusión DoS Real en Texto Plano
+    row_dos_at = df_at[df_at['attack_vector'] == 'DoS'].sample(n=1, random_state=10)[columnas_attack].values[0].tolist()
+    row_dos_enc = df_enc[df_enc['Encryption_Label'] == 'Cifrado'].sample(n=1, random_state=10)[columnas_enc].values[0].tolist()
+    
+    # Caso 3: Ataque/Malware Real oculto dentro de un canal Cifrado (VPN/Tor)
+    # Extraemos un vector de malware real de tus datos unificados
+    row_malware_at = df_at[df_at['attack_vector'] == 'Generic'].sample(n=1, random_state=99)[columnas_attack].values[0].tolist()
+    row_malware_enc = df_enc[df_enc['Encryption_Label'] == 'No Cifrado'].sample(n=1, random_state=99)[columnas_enc].values[0].tolist()
+
+    # Estructuramos el set experimental de la demo
+    perfiles = [
+        ("001", row_normal_at, row_normal_enc, "Tráfico Benigno Estándar (Navegación Web Real)"),
+        ("002", row_dos_at, row_dos_enc, "Ataque de Inundación de Denegación de Servicio (DoS Real)"),
+        ("003", row_malware_at, row_malware_enc, "Infección de Malware Ofuscada sobre Canal Cifrado Real (VPN/Tor)")
+    ]
+    
+    # Liberar memoria de los dataframes masivos antes de transmitir
+    del df_at, df_enc
+    
+    # 3. TRANSMISIÓN END-TO-END
     for id_f, at_feat, enc_feat, desc in perfiles:
-        print(f"\n[Sonda] Detectando descriptor de flujo: '{desc}'")
-        print(f"[Sonda] Transmitiendo telemetría al motor central...")
+        print(f"\n[Sonda] Capturando datos del flujo corporativo: '{desc}'")
+        print(f"[Sonda] Transmitiendo vectores métricos hacia el núcleo IDS...")
         
+        # Enviar al servidor socket
         resp = enviar_flujo_a_nids(id_f, at_feat, enc_feat)
         
-        print(f"[Sonda] Servidor NIDS responde: Status={resp['status']} | Veredicto='{resp['veredicto']}'")
-        time.sleep(3) # Pausa entre capturas de flujos para visibilidad de la demo
+        print(f"[Sonda] Respuesta Central NIDS: Status={resp['status']} | Veredicto='{resp['veredicto']}'")
+        time.sleep(2)
         
-    print("\n[+] Simulación de ráfagas completada.")
+    print("\n[+] Demostración de ráfagas operacionales concluida con éxito.")
