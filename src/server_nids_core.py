@@ -59,5 +59,5 @@ def iniciar_servidor_nids(base_dir, host='127.0.0.1', port=9999):
         server_socket.close()
 
 if __name__ == "__main__":
-    RAIZ_PROYECTO = Path(__file__).resolve().parents[2]
+    RAIZ_PROYECTO = Path(__file__).resolve().parents[1]
     iniciar_servidor_nids(base_dir=RAIZ_PROYECTO)

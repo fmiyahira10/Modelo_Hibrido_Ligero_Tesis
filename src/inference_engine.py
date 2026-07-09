@@ -11,7 +11,7 @@ os.environ['TF_CPP_MIN_LOG_LEVEL'] = '3'
 class InferenceAndCorrelationEngine:
     def __init__(self, base_dir):
         self.base_dir = base_dir
-        self.tesis_dir = Path(base_dir) / 'Tesis'
+        self.tesis_dir = Path(base_dir)
         
         print("[-] Inicializando Motor de Correlación Híbrido Ligero...")
         self._load_artifacts()
@@ -112,7 +112,7 @@ class InferenceAndCorrelationEngine:
 # ===================================================================
 if __name__ == "__main__":
     # Define la raíz de tu proyecto local
-    RAIZ_PROYECTO = Path(__file__).resolve().parents[2]
+    RAIZ_PROYECTO = Path(__file__).resolve().parents[1]
     
     # Instanciamos el motor
     engine = InferenceAndCorrelationEngine(base_dir=RAIZ_PROYECTO)

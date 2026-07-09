@@ -29,9 +29,9 @@ if __name__ == "__main__":
     print("[+] Inicializando Simulador de Sonda con Tráfico Real de Tesis...")
     
     # 1. Rutas de los datasets limpios para extraer muestras reales
-    BASE_DIR = Path(__file__).resolve().parents[2]
-    ruta_ataques = BASE_DIR /'tesis' / 'data' / 'processed' / 'Attack_Dataset_Clean.parquet'
-    ruta_cifrado = BASE_DIR / 'tesis' /'data' / 'processed' / 'Encryption_Dataset_Clean.parquet'
+    BASE_DIR = Path(__file__).resolve().parents[1]
+    ruta_ataques = BASE_DIR / 'data' / 'processed' / 'Attack_Dataset_Clean.parquet'
+    ruta_cifrado = BASE_DIR /'data' / 'processed' / 'Encryption_Dataset_Clean.parquet'
     
     # Columnas exactas que espera el carril de ataques
     columnas_attack = [
@@ -51,16 +51,16 @@ if __name__ == "__main__":
     print("[+] Extrayendo firmas criptográficas y vectoriales reales...")
     
     # Caso 1: Flujo Normal y Texto Plano Real
-    row_normal_at = df_at[df_at['attack_vector'] == 'Reconnaissance'].sample(n=1, random_state=42)[columnas_attack].values[0].tolist()
-    row_normal_enc = df_enc[df_enc['Encryption_Label'] == 'Cifrado'].sample(n=1, random_state=42)[columnas_enc].values[0].tolist()
+    row_normal_at = df_at[df_at['attack_vector'] == 'Malware_Exploits'].sample(n=1, random_state=60)[columnas_attack].values[0].tolist()
+    row_normal_enc = df_enc[df_enc['Encryption_Label'] == 'No Cifrado'].sample(n=1, random_state=60)[columnas_enc].values[0].tolist()
     
     # Caso 2: Intrusión DoS Real en Texto Plano
-    row_dos_at = df_at[df_at['attack_vector'] == 'DoS'].sample(n=1, random_state=10)[columnas_attack].values[0].tolist()
+    row_dos_at = df_at[df_at['attack_vector'] == 'Normal'].sample(n=1, random_state=10)[columnas_attack].values[0].tolist()
     row_dos_enc = df_enc[df_enc['Encryption_Label'] == 'Cifrado'].sample(n=1, random_state=10)[columnas_enc].values[0].tolist()
     
     # Caso 3: Ataque/Malware Real oculto dentro de un canal Cifrado (VPN/Tor)
     # Extraemos un vector de malware real de tus datos unificados
-    row_malware_at = df_at[df_at['attack_vector'] == 'Generic'].sample(n=1, random_state=99)[columnas_attack].values[0].tolist()
+    row_malware_at = df_at[df_at['attack_vector'] == 'Reconnaissance'].sample(n=1, random_state=99)[columnas_attack].values[0].tolist()
     row_malware_enc = df_enc[df_enc['Encryption_Label'] == 'No Cifrado'].sample(n=1, random_state=99)[columnas_enc].values[0].tolist()
 
     # Estructuramos el set experimental de la demo

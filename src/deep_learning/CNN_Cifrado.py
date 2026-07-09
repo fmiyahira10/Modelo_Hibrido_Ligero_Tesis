@@ -46,35 +46,48 @@ print(f"Formato tensor de Validación    : {X_val_reshaped.shape}")
 print(f"Formato tensor de Prueba        : {X_test_reshaped.shape}")
 
 # ===================================================================
-# 2. ARQUITECTURA DE LA RED NEURONAL DE EXTRACCIÓN LATENTE
+# 2. ARQUITECTURA DE LA RED NEURONAL BLINDADA CONTRA OVERFITTING
 # ===================================================================
-print("\nDiseñando arquitectura para Submodelo B (CNN_Encryption)...")
+print("\nDiseñando arquitectura optimizada para Submodelo B (CNN_Encryption)...")
 
 input_shape = (X_train_reshaped.shape[1], X_train_reshaped.shape[2]) # (62, 1)
 inputs = Input(shape=input_shape, name='Input_Descriptores_Crudos')
 
-# Bloque Concolucional Ligero 1
+# Bloque Convolucional Ligero 1: Aumentamos Dropout para mitigar el ruido inicial de las 62 variables
 x = Conv1D(filters=32, kernel_size=3, activation='relu', padding='same', name='Conv1D_Cifrado_1')(inputs)
 x = BatchNormalization(name='BatchNorm_Cifrado_1')(x)
 x = MaxPooling1D(pool_size=2, name='MaxPool_Cifrado_1')(x)
-x = Dropout(0.2, seed=42, name='Dropout_Cifrado_1')(x)
+x = Dropout(0.3, seed=42, name='Dropout_Cifrado_1')(x)
 
 # Bloque Convolucional Ligero 2
 x = Conv1D(filters=64, kernel_size=3, activation='relu', padding='same', name='Conv1D_Cifrado_2')(x)
 x = BatchNormalization(name='BatchNorm_Cifrado_2')(x)
+x = MaxPooling1D(pool_size=2, name='MaxPool_Cifrado_2')(x) # Agregamos un segundo pooling para reducir dimensiones
 x = Flatten(name='Flatten_Cifrado')(x)
 
-# CAPA BOTTLENECK: Espacio latente comprimido de 16 rasgos abstractos
-embedding_layer = Dense(16, activation='relu', name='Embedding_Encryption')(x)
+# --- ESCUDO ANTISOBREAJUSTE CRÍTICO ---
+# Apagamos aleatoriamente el 40% de las conexiones aplanadas para forzar la generalización
+x = Dropout(0.4, seed=42, name='Dropout_Pre_Bottleneck')(x)
+
+# CAPA BOTTLENECK: Espacio latente comprimido con regularización L2
+x = Dense(
+    16, 
+    activation='relu', 
+    kernel_regularizer=tf.keras.regularizers.l2(0.001), # Penaliza pesos gigantes estructurales
+    name='Embedding_Encryption'
+)(x)
+
+# Dropout final de protección antes de la salida sigmoidal
+x = Dropout(0.2, seed=42, name='Dropout_Post_Bottleneck')(x)
 
 # Capa de salida binaria (0 = No Cifrado, 1 = Cifrado)
-outputs = Dense(1, activation='sigmoid', name='Salida_Clasificador_Binario')(embedding_layer)
+outputs = Dense(1, activation='sigmoid', name='Salida_Clasificador_Binario')(x)
 
 model_encryption = Model(inputs=inputs, outputs=outputs, name='CNN_Encryption_Full')
 model_encryption.summary()
 
 # ===================================================================
-# 3. COMPILACIÓN Y PARÁMETROS DE ENTRENAMIENTO
+# 3. COMPILACIÓN Y PARÁMETROS DE ENTRENAMIENTO (CORREGIDO + HISTORIAL)
 # ===================================================================
 model_encryption.compile(
     optimizer=tf.keras.optimizers.Adam(learning_rate=0.001),
@@ -91,7 +104,8 @@ callbacks_list = [
 ]
 
 print("\nIniciando entrenamiento del submodelo de cifrado...")
-model_encryption.fit(
+# CORRECCIÓN: Asignamos el entrenamiento a la variable 'history' para capturar las métricas
+history = model_encryption.fit(
     X_train_reshaped, y_train,
     validation_data=(X_val_reshaped, y_val),
     epochs=20,
@@ -99,6 +113,40 @@ model_encryption.fit(
     callbacks=callbacks_list,
     verbose=1
 )
+
+# ===================================================================
+# 3.5. GENERACIÓN Y ALMACENAMIENTO DE CURVAS DE APRENDIZAJE (CARRIL B)
+# ===================================================================
+print("\nGenerando gráficos de rendimiento del submodelo de cifrado...")
+output_perf_path = os.path.join(BASE_DIR, 'src', 'Embedding', 'curvas_rendimiento_encryption.png')
+
+fig, (ax1, ax2) = plt.subplots(1, 2, figsize=(16, 6), dpi=300)
+
+# --- Gráfica 1: Evolución de la Función de Pérdida Binaria (Loss) ---
+ax1.plot(history.history['loss'], label='Pérdida de Entrenamiento (Train Loss)', color='#1f77b4', linewidth=2.5)
+ax1.plot(history.history['val_loss'], label='Pérdida de Validación (Val Loss)', color='#ff7f0e', linewidth=2.5)
+ax1.set_title('Evolución del Loss (Binary Crossentropy)', fontweight='bold', pad=10)
+ax1.set_xlabel('Épocas de Entrenamiento')
+ax1.set_ylabel('Valor de Pérdida')
+ax1.legend(loc='upper right')
+ax1.grid(True, linestyle=':', alpha=0.5)
+
+# --- Gráfica 2: Evolución de la Exactitud Binaria (Accuracy) ---
+ax2.plot(history.history['accuracy'], label='Exactitud de Entrenamiento (Train Acc)', color='#2ca02c', linewidth=2.5)
+ax2.plot(history.history['val_accuracy'], label='Exactitud de Validación (Val Acc)', color='#d62728', linewidth=2.5)
+ax2.set_title('Evolución de la Exactitud (Accuracy Binaria)', fontweight='bold', pad=10)
+ax2.set_xlabel('Épocas de Entrenamiento')
+ax2.set_ylabel('Tasa de Acierto (0.0 - 1.0)')
+ax2.legend(loc='lower right')
+ax2.grid(True, linestyle=':', alpha=0.5)
+
+plt.suptitle('Métricas del Pipeline de Entrenamiento - Submodelo B (CNN_Encryption)', fontsize=14, fontweight='bold', y=0.98)
+plt.tight_layout()
+
+# Guardar la gráfica en alta calidad técnica para la documentación de tu tesis
+plt.savefig(output_perf_path, dpi=300, bbox_inches='tight')
+plt.show()
+print(f"¡Gráfica de curvas de rendimiento guardada exitosamente en: '{output_perf_path}'!")
 
 # ===================================================================
 # 4. FASE 5: EXTRACCIÓN Y VALIDACIÓN VISUAL t-SNE DEL ESPACIO LATENTE

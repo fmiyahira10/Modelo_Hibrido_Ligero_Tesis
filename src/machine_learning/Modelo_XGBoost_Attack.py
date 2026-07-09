@@ -3,6 +3,7 @@ import tensorflow as tf
 from tensorflow.keras.models import load_model, Model
 from xgboost import XGBClassifier
 from sklearn.metrics import accuracy_score, precision_score, recall_score, f1_score, fbeta_score, matthews_corrcoef, classification_report
+import matplotlib.pyplot as plt
 import os
 import joblib
 from pathlib import Path
@@ -56,29 +57,90 @@ joblib.dump(xgb_attack, os.path.join(BASE_DIR, 'src', 'Results', 'attack_classif
 print("-> Clasificador de ataques guardado con éxito.")
 
 # ===================================================================
-# 4. FASE 7: EVALUACIÓN EXPERIMENTAL (MÉTRICAS TESIS)
+# 3.5. FASE 6.5: INFERENCIA CRUZADA PARA DIAGNÓSTICO DE OVERFITTING
 # ===================================================================
-print("\n[Fase 7] Ejecutando inferencia sobre el conjunto de prueba...")
-y_pred = xgb_attack.predict(X_test_embeddings)
+print("\n[Fase 6.5] Ejecutando inferencia cruzada para análisis de generalización...")
+# Predecimos sobre ambas particiones para evaluar la brecha operativa real
+y_train_pred = xgb_attack.predict(X_train_embeddings)
+y_test_pred = xgb_attack.predict(X_test_embeddings)
 
-accuracy = accuracy_score(y_test, y_pred)
-precision = precision_score(y_test, y_pred, average='macro', zero_division=0)
-recall = recall_score(y_test, y_pred, average='macro', zero_division=0)
-f1 = f1_score(y_test, y_pred, average='macro', zero_division=0)
-f2 = fbeta_score(y_test, y_pred, beta=2.0, average='macro', zero_division=0) # Penaliza falsos negativos
-mcc = matthews_corrcoef(y_test, y_pred)
+# --- Cálculo de Métricas para el Set de Entrenamiento (Train Set) ---
+acc_train = accuracy_score(y_train, y_train_pred)
+prec_train = precision_score(y_train, y_train_pred, average='macro', zero_division=0)
+rec_train = recall_score(y_train, y_train_pred, average='macro', zero_division=0)
+f1_train = f1_score(y_train, y_train_pred, average='macro', zero_division=0)
+f2_train = fbeta_score(y_train, y_train_pred, beta=2.0, average='macro', zero_division=0)
+mcc_train = matthews_corrcoef(y_train, y_train_pred)
 
-print("\n" + "="*60)
-print("   RENDIMIENTO EXPERIMENTAL: MODELO HÍBRIDO (CNN + XGBOOST)")
-print("="*60)
-print(f" - Exactitud (Accuracy)                : {accuracy:.4f} ({accuracy*100:.2f}%)")
-print(f" - Precisión (Precision Macro)         : {precision:.4f} ({precision*100:.2f}%)")
-print(f" - Sensibilidad (Recall Macro)         : {recall:.4f} ({recall*100:.2f}%)")
-print(f" - Puntuación F1 (F1-Score Macro)      : {f1:.4f} ({f1*100:.2f}%)")
-print(f" - Puntuación F2 (F2-Score Defensivo)  : {f2:.4f} ({f2*100:.2f}%)")
-print(f" - Coeficiente de Matthews (MCC)       : {mcc:.4f}")
-print("="*60)
+# --- Cálculo de Métricas para el Set de Prueba Independiente (Test Set) ---
+acc_test = accuracy_score(y_test, y_test_pred)
+prec_test = precision_score(y_test, y_test_pred, average='macro', zero_division=0)
+rec_test = recall_score(y_test, y_test_pred, average='macro', zero_division=0)
+f1_test = f1_score(y_test, y_test_pred, average='macro', zero_division=0)
+f2_test = fbeta_score(y_test, y_test_pred, beta=2.0, average='macro', zero_division=0)
+mcc_test = matthews_corrcoef(y_test, y_test_pred)
 
-print("\n=== DESGLOSE DETALLADO DE DESEMPEÑO POR MACRO-CLASE ===")
-print(classification_report(y_test, y_pred, target_names=le_attack.classes_, zero_division=0))
-print("="*60)
+# ===================================================================
+# 4. EXPORTACIÓN VISUAL DEL ANÁLISIS DE SOBREAJUSTE (GRÁFICA)
+# ===================================================================
+print("\nGenerando gráfica científica de diagnóstico de Overfitting...")
+metrics_names = ['Exactitud\n(Accuracy)', 'Precisión\n(Precision)', 'Sensibilidad\n(Recall)', 'F1-Score\n(Macro)', 'F2-Score\n(Defensivo)', 'Coef. Matthews\n(MCC)']
+train_metrics = [acc_train, prec_train, rec_train, f1_train, f2_train, mcc_train]
+test_metrics = [acc_test, prec_test, rec_test, f1_test, f2_test, mcc_test]
+
+x_indices = np.arange(len(metrics_names))
+bar_width = 0.35
+
+fig, ax = plt.subplots(figsize=(12, 6.5), dpi=300)
+
+# Graficar barras comparativas (Azul corporativo vs Naranja de testeo)
+bars_train = ax.bar(x_indices - bar_width/2, train_metrics, bar_width, label='Entrenamiento (Train Set)', color='#1f77b4', alpha=0.9)
+bars_test = ax.bar(x_indices + bar_width/2, test_metrics, bar_width, label='Prueba Independiente (Test Set)', color='#ff7f0e', alpha=0.9)
+
+# Formatear el lienzo bajo estándares académicos internacionales (IEEE)
+ax.set_ylabel('Valor Numérico de la Métrica (0.00 - 1.00)', fontsize=11, fontweight='bold')
+ax.set_title('Evaluación de Generalización y Diagnóstico de Overfitting - XGBoost (Carril A)', fontsize=13, fontweight='bold', pad=15)
+ax.set_xticks(x_indices)
+ax.set_xticklabels(metrics_names, fontsize=10)
+ax.set_ylim(0, 1.15)
+ax.legend(loc='lower left', fontsize=11)
+ax.grid(True, linestyle=':', alpha=0.5)
+
+# Función técnica para inyectar etiquetas de valor numérico sobre cada barra
+def label_bars(rects):
+    for rect in rects:
+        height = rect.get_height()
+        ax.annotate(f'{height:.4f}',
+                    xy=(rect.get_x() + rect.get_width() / 2, height),
+                    xytext=(0, 4),  
+                    textcoords="offset points",
+                    ha='center', va='bottom', fontsize=9, fontweight='bold')
+
+label_bars(bars_train)
+label_bars(bars_test)
+
+plt.tight_layout()
+ruta_grafico_ml = os.path.join(BASE_DIR, 'src', 'Results', 'diagnostic_overfitting_xgb_attack.png')
+plt.savefig(ruta_grafico_ml, dpi=300, bbox_inches='tight')
+plt.show()
+print(f"¡Gráfica de control guardada exitosamente en: '{ruta_grafico_ml}'!")
+
+# ===================================================================
+# 5. REPORTE TÉCNICO FORMAL COMPARATIVO PARA TU TESIS
+# ===================================================================
+print("\n" + "="*70)
+print("   CONTRALORÍA DE CONVERGENCIA EN MACHINE LEARNING SUPERFICIAL")
+print("="*70)
+print(f" Métrica Analizada       |  Train Set  |  Test Set   |  Brecha (Gap)")
+print("-"*70)
+print(f" Exactitud (Accuracy)    |   {acc_train:.4f}    |   {acc_test:.4f}    |   {abs(acc_train - acc_test):.4f}")
+print(f" Precisión Macro         |   {prec_train:.4f}    |   {prec_test:.4f}    |   {abs(prec_train - prec_test):.4f}")
+print(f" Sensibilidad Macro      |   {rec_train:.4f}    |   {rec_test:.4f}    |   {abs(rec_train - rec_test):.4f}")
+print(f" Puntuación F1 Macro     |   {f1_train:.4f}    |   {f1_test:.4f}    |   {abs(f1_train - f1_test):.4f}")
+print(f" Puntuación F2 Defensiva |   {f2_train:.4f}    |   {f2_test:.4f}    |   {abs(f2_train - f2_test):.4f}")
+print(f" Coef. de Matthews (MCC) |   {mcc_train:.4f}    |   {mcc_test:.4f}    |   {abs(mcc_train - mcc_test):.4f}")
+print("="*70)
+
+print("\n=== DESGLOSE DETALLADO DE DESEMPEÑO POR MACRO-CLASE (TEST SET) ===")
+print(classification_report(y_test, y_test_pred, target_names=le_attack.classes_, zero_division=0))
+print("="*70)
