@@ -7,41 +7,49 @@ from sklearn.metrics import (
 )
 from pathlib import Path
 import joblib
+
 # ===================================================================
-# 1. CONFIGURACIÓN DE RUTAS RELATIVAS
+# 1. CONFIGURACIÓN Y CARGA
 # ===================================================================
 BASE_DIR = Path(__file__).resolve().parents[2]
 
-print("Cargando matrices de la Fase 3 para el carril de Ataques...")
-X_train = np.load(os.path.join(BASE_DIR, 'data','final', 'X_train_attack.npy'))
-X_test = np.load(os.path.join(BASE_DIR, 'data','final', 'X_test_attack.npy'))
-y_train = np.load(os.path.join(BASE_DIR, 'data','final', 'y_train_attack.npy'))
-y_test = np.load(os.path.join(BASE_DIR, 'data','final', 'y_test_attack.npy'))
+print("Cargando matrices de la Fase 3...")
+X_train = np.load(os.path.join(BASE_DIR, 'data', 'final', 'X_train_attack.npy'))
+X_test = np.load(os.path.join(BASE_DIR, 'data', 'final', 'X_test_attack.npy'))
+y_train = np.load(os.path.join(BASE_DIR, 'data', 'final', 'y_train_attack.npy'))
+y_test = np.load(os.path.join(BASE_DIR, 'data', 'final', 'y_test_attack.npy'))
 
-# Asegurar dimensiones correctas para Machine Learning tradicional (2D)
 if len(X_train.shape) == 3:
     X_train = X_train.reshape(X_train.shape[0], -1)
     X_test = X_test.reshape(X_test.shape[0], -1)
 
-print(f"Dimensiones de entrenamiento: {X_train.shape}")
-print(f"Dimensiones de prueba: {X_test.shape}\n")
+# ===================================================================
+# 2. ENTRENAMIENTO CON REGULARIZACIÓN (EVITANDO OVERFITTING)
+# ===================================================================
+print("Entrenando Baseline con restricciones de complejidad...")
 
-# ===================================================================
-# 2. ENTRENAMIENTO DE LÍNEA BASE (SIN EMBEDDING)
-# ===================================================================
-print("Entrenando Modelo Baseline: Random Forest (Características Originales)...")
-rf_baseline = RandomForestClassifier(n_estimators=100, random_state=42, n_jobs=-1)
+# Limitamos la profundidad (max_depth) y aumentamos el requisito de 
+# muestras en hojas (min_samples_leaf) para evitar el overfitting puro.
+rf_baseline = RandomForestClassifier(
+    n_estimators=100,
+    max_depth=10,             # Fuerza al modelo a no aprender reglas demasiado específicas
+    min_samples_leaf=5,       # Evita que el modelo aprenda ruido de grupos muy pequeños
+    random_state=42,
+    n_jobs=-1,
+    verbose=1
+)
+
 rf_baseline.fit(X_train, y_train)
-print("Entrenamiento completado exitosamente.")
 
 joblib.dump(rf_baseline, os.path.join(BASE_DIR, 'src', 'ML_Simple','Resultados', 'attack_classifier_rf_baseline.pkl'))
+
+
 # ===================================================================
-# 3. EVALUACIÓN EXPERIMENTAL FORMAL
+# 3. EVALUACIÓN Y VALIDACIÓN
 # ===================================================================
-print("Generando inferencia sobre el conjunto de prueba...")
 y_pred = rf_baseline.predict(X_test)
 
-# Cálculo de las 6 métricas reglamentarias
+# Métricas
 acc = accuracy_score(y_test, y_pred)
 prec = precision_score(y_test, y_pred, average='macro')
 rec = recall_score(y_test, y_pred, average='macro')
@@ -50,16 +58,13 @@ f2 = fbeta_score(y_test, y_pred, beta=2, average='macro')
 mcc = matthews_corrcoef(y_test, y_pred)
 
 print("\n" + "="*60)
-print("   RENDIMIENTO BASELINE: RANDOM FOREST DIRECTO (SIN CNN)")
+print(" RENDIMIENTO BASELINE REGULARIZADO: RANDOM FOREST")
 print("="*60)
-print(f"- Exactitud (Accuracy)                : {acc:.4f} ({acc*100:.2f}%)")
-print(f"- Precisión (Precision Macro)         : {prec:.4f} ({prec*100:.2f}%)")
-print(f"- Sensibilidad (Recall Macro)         : {rec:.4f} ({rec*100:.2f}%)")
-print(f"- Puntuación F1 (F1-Score Macro)      : {f1:.4f} ({f1*100:.2f}%)")
-print(f"- Puntuación F2 (F2-Score Defensivo)  : {f2:.4f} ({f2*100:.2f}%)")
-print(f"- Coeficiente de Matthews (MCC)       : {mcc:.4f}")
+print(f"- Exactitud (Accuracy)       : {acc:.4f}")
+print(f"- Precisión (Macro)          : {prec:.4f}")
+print(f"- Sensibilidad (Recall Macro): {rec:.4f}")
+print(f"- F1-Score (Macro)           : {f1:.4f}")
+print(f"- F2-Score (Defensivo)       : {f2:.4f}")
+print(f"- Coeficiente Matthews (MCC) : {mcc:.4f}")
 print("="*60)
-
-print("\n=== DESGLOSE DETALLADO DE DESEMPEÑO POR MACRO-CLASE ===")
-# Nota: Si cuentas con la lista de etiquetas mapeadas, puedes pasarla en target_names
 print(classification_report(y_test, y_pred, digits=4))

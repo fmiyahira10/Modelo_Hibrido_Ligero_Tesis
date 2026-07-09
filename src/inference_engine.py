@@ -29,7 +29,7 @@ class InferenceAndCorrelationEngine:
             # Carril B: Cifrado
             self.scaler_encryption = joblib.load(self.tesis_dir / 'models' / 'robust_scaler_encryption.pkl')
             self.le_encryption = joblib.load(self.tesis_dir / 'models' / 'label_encoder_encryption.pkl')
-            self.clf_lgb_encryption = joblib.load(self.tesis_dir / 'src' / 'Results' / 'encryption_classifier_lgb.pkl')
+            self.clf_rf_encryption = joblib.load(self.tesis_dir / 'src' / 'Results' / 'encryption_classifier_rf.pkl')
             
             # Modelos Keras Completos
             self.cnn_full_attack = load_model(self.tesis_dir / 'src' / 'Embedding' /'best_cnn_attack_model.keras')
@@ -72,7 +72,7 @@ class InferenceAndCorrelationEngine:
         
         # 4. INFERENCIA MEDIANTE CLASIFICADORES DE ENSAMBLE (Fase 6)
         pred_at_code = self.clf_rf_attack.predict(emb_attack)[0]
-        pred_enc_code = self.clf_lgb_encryption.predict(emb_encryption)[0]
+        pred_enc_code = self.clf_rf_encryption.predict(emb_encryption)[0]
         
         # Decodificación de los nombres reales de las etiquetas
         label_attack = self.le_attack.inverse_transform([pred_at_code])[0]
@@ -82,8 +82,8 @@ class InferenceAndCorrelationEngine:
         veredicto_final = self._correlate_verdicts(label_attack, label_encryption)
         
         return {
-            'Carril_Aataques': label_attack,
-            'Carril_Bcifrado': label_encryption,
+            'Carril_A_ataques': label_attack,
+            'Carril_B_cifrado': label_encryption,
             'Veredicto_IDS': veredicto_final
         }
 
@@ -127,7 +127,7 @@ if __name__ == "__main__":
     print("\n" + "="*50)
     print("        RESULTADO DEL MOTOR DE CORRELACIÓN CORE")
     print("="*50)
-    print(f" Diagnóstico Carril A (Ataques) : {resultado['Carril_Aataques']}")
-    print(f" Diagnóstico Carril B (Cifrado) : {resultado['Carril_Bcifrado']}")
+    print(f" Diagnóstico Carril A (Ataques) : {resultado['Carril_A_ataques']}")
+    print(f" Diagnóstico Carril B (Cifrado) : {resultado['Carril_B_cifrado']}")
     print(f" -> VEREDICTO INTEGRADO NIDS    : {resultado['Veredicto_IDS']}")
     print("="*50)
