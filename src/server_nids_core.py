@@ -38,8 +38,8 @@ def iniciar_servidor_nids(base_dir, host='127.0.0.1', port=9999):
                     
                     print(f"[FLUJO {id_flujo}] Inferencia Concluida con éxito:")
                     print(f" ├─ Origen: {addr[0]}:{addr[1]}")
-                    print(f" ├─ Análisis Vectorial : {resultado['Carril_Aataques']}")
-                    print(f" ├─ Análisis Cifrado   : {resultado['Carril_Bcifrado']}")
+                    print(f" ├─ Análisis Vectorial : {resultado['Carril_A_ataques']}")
+                    print(f" ├─ Análisis Cifrado   : {resultado['Carril_B_cifrado']}")
                     print(f" └─ VEREDICTO GENERAL  : {resultado['Veredicto_IDS']}")
                     print("-" * 50)
                     

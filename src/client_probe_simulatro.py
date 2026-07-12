@@ -60,7 +60,7 @@ if __name__ == "__main__":
     
     # Caso 3: Ataque/Malware Real oculto dentro de un canal Cifrado (VPN/Tor)
     # Extraemos un vector de malware real de tus datos unificados
-    row_malware_at = df_at[df_at['attack_vector'] == 'Reconnaissance'].sample(n=1, random_state=99)[columnas_attack].values[0].tolist()
+    row_malware_at = df_at[df_at['attack_vector'] == 'DoS'].sample(n=1, random_state=99)[columnas_attack].values[0].tolist()
     row_malware_enc = df_enc[df_enc['Encryption_Label'] == 'No Cifrado'].sample(n=1, random_state=99)[columnas_enc].values[0].tolist()
 
     # Estructuramos el set experimental de la demo
