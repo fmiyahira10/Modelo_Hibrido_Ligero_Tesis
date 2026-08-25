@@ -55,6 +55,12 @@ data/final/*
 !data/final/.gitkeep
 *.npy
 
+# models/classifiers — modelos de ML (Random Forest, LightGBM, XGBoost) — archivos .pkl grandes
+models/classifiers/*.pkl
+
+# models/deep_learning — modelos de Deep Learning Keras
+models/deep_learning/*.keras
+
 # ============================================================
 # MODELOS Y ARTEFACTOS
 # ============================================================
