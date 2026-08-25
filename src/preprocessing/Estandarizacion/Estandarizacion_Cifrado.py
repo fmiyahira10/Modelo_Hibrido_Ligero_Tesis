@@ -28,7 +28,7 @@ le_encryption = LabelEncoder()
 df['target_encoded'] = le_encryption.fit_transform(df[target])
 
 # Serialización del codificador para la etapa final de inferencia paralela
-joblib.dump(le_encryption, os.path.join(BASE_DIR, 'models', 'label_encoder_encryption.pkl'))
+joblib.dump(le_encryption, os.path.join(BASE_DIR, 'models', 'scalers_encoders', 'label_encoder_encryption.pkl'))
 
 print("Mapeo binario de control establecido:")
 for clase, codigo in zip(le_encryption.classes_, le_encryption.transform(le_encryption.classes_)):
@@ -68,7 +68,7 @@ X_val_scaled = scaler_robust.transform(X_val_raw)
 X_test_scaled = scaler_robust.transform(X_test_raw)
 
 # Serialización del escalador robusto de encriptación
-joblib.dump(scaler_robust, os.path.join(BASE_DIR, 'models', 'robust_scaler_encryption.pkl'))
+joblib.dump(scaler_robust, os.path.join(BASE_DIR, 'models', 'scalers_encoders', 'robust_scaler_encryption.pkl'))
 
 # ===================================================================
 # 5. SERIALIZACIÓN MATRICIAL NUMPY (.npy) PARA TENSORFLOW

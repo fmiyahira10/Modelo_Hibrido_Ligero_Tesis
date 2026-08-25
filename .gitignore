@@ -59,22 +59,18 @@ data/final/*
 # MODELOS Y ARTEFACTOS
 # ============================================================
 
-# Modelos de ML (Random Forest, etc.) — archivos .pkl grandes
-# Los pkl pequeños de encoders/scalers en models/ SÍ se suben
+# Modelos de ML (Random Forest, LightGBM, XGBoost) — archivos .pkl grandes
+models/classifiers/*.pkl
+!models/classifiers/.gitkeep
 src/Results/*.pkl
 !src/Results/.gitkeep
 src/ML_Simple/Resultados/*.pkl
 !src/ML_Simple/Resultados/.gitkeep
 
-
-# Modelos de Deep Learning Keras (no estaban cubiertos antes)
+# Modelos de Deep Learning Keras
 *.keras
 
-# Modelos en la raíz de /models (pkl grandes si los hubiera)
-# Nota: label_encoder y robust_scaler son pequeños y necesarios,
-# por eso NO se agregan aquí; solo se ignoran los que superan ~1 MB
-# Si quieres ignorarlos todos, descomenta la siguiente línea:
-# models/*.pkl
+# Escaladores y Encoders pequeños en models/scalers_encoders/ SÍ se rastrean (no se ignoran)
 
 # ============================================================
 # ARCHIVOS COMPRIMIDOS Y FORMATOS PESADOS (global)

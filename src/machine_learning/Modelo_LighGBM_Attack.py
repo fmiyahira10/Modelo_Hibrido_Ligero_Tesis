@@ -23,13 +23,13 @@ X_test_raw = np.load(os.path.join(BASE_DIR,'data','final', 'X_test_attack.npy'))
 y_train = np.load(os.path.join(BASE_DIR,'data','final', 'y_train_attack.npy'))
 y_test = np.load(os.path.join(BASE_DIR,'data','final', 'y_test_attack.npy'))
 
-le_attack = joblib.load(os.path.join(BASE_DIR,'models', 'label_encoder_attack.pkl'))
+le_attack = joblib.load(os.path.join(BASE_DIR, 'models', 'scalers_encoders', 'label_encoder_attack.pkl'))
 
 # ===================================================================
 # 2. FASE 5: EXTRACCIÓN DE EMBEDDINGS DESDE LA CNN_ATTACK
 # ===================================================================
 print("\n[Fase 5] Cargando CNN_Attack y extrayendo representaciones latentes (16D)...")
-modelo_cnn = load_model(os.path.join(BASE_DIR,'src','Embedding', 'best_cnn_attack_model.keras'))
+modelo_cnn = load_model(os.path.join(BASE_DIR, 'models', 'deep_learning', 'best_cnn_attack_model.keras'))
 
 extractor_embeddings = Model(inputs=modelo_cnn.input, outputs=modelo_cnn.get_layer('Embedding_Attack').output)
 
@@ -54,7 +54,7 @@ lgb_attack = LGBMClassifier(
 )
 
 lgb_attack.fit(X_train_embeddings, y_train)
-joblib.dump(lgb_attack, os.path.join(BASE_DIR, 'src', 'Results', 'attack_classifier_lgb.pkl'))
+joblib.dump(lgb_attack, os.path.join(BASE_DIR, 'models', 'classifiers', 'attack_classifier_lgb.pkl'))
 print("-> Clasificador LightGBM de ataques guardado con éxito.")
 
 # ===================================================================
@@ -118,7 +118,7 @@ label_bars(bars_train)
 label_bars(bars_test)
 
 plt.tight_layout()
-ruta_grafico_ml = os.path.join(BASE_DIR, 'src', 'Results', 'diagnostic_overfitting_lgbm_attack.png')
+ruta_grafico_ml = os.path.join(BASE_DIR, 'reports', 'figures', 'diagnostic_overfitting_lgbm_attack.png')
 plt.savefig(ruta_grafico_ml, dpi=300, bbox_inches='tight')
 plt.show()
 print(f"¡Gráfica de control de LightGBM guardada exitosamente en: '{ruta_grafico_ml}'!")

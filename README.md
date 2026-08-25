@@ -1,62 +1,123 @@
-# Proyecto Híbrido de Ciberseguridad: Deep Learning & Machine Learning
+# Modelo Híbrido Ligero NIDS: Deep Learning & Machine Learning
 
-Este proyecto implementa una arquitectura híbrida para la detección de intrusiones y ataques en red, utilizando modelos de **Deep Learning** para la selección de características y algoritmos de **Machine Learning** para la clasificación final.
+Este proyecto implementa un **Sistema de Detección de Intrusiones en Red (NIDS)** de arquitectura híbrida y ligera, diseñado para la detección avanzada de ciberamenazas y clasificación de tráfico cifrado en tiempo real. 
 
-## Estructura del Proyecto
+El sistema utiliza **Redes Neuronales Convolucionales 1D (CNN 1D)** para la reducción de dimensionalidad y extracción de representaciones latentes (*embeddings* de 16 dimensiones), combinadas con clasificadores de **Machine Learning (Random Forest, LightGBM y XGBoost)** para la decisión final y un **Motor de Inferencia y Correlación Lógica** para la mitigación de falsos positivos.
 
-La organización del repositorio es la siguiente:
+---
 
-- **data/**: Contiene los conjuntos de datos en sus diferentes etapas (Ver sección de Descarga).
-    - `raw/`: Datos originales (CSV, ZIP) tal como se descargaron.
-    - `processed/`: Datos intermedios procesados (formato Parquet).
-    - `final/`: Archivos finales para entrenamiento (.npy escalados).
-- **models/**: Almacena artefactos como encoders (.pkl), scalers y modelos.
-- **notebooks/**: Jupyter Notebooks para análisis (EDA) y experimentación.
-- **src/**: Código fuente.
-    - `preprocessing/`: Scripts para limpieza y estandarización.
-    - `deep_learning/`: Modelos para extracción de características (CNN1D).
-    - `machine_learning/`: Clasificadores finales.
-- **requirements.txt**: Dependencias del proyecto.
+## 🚀 Arquitectura del Sistema (Carril Dual)
 
-## Descarga de Datos
+El sistema opera mediante un esquema de procesamiento en dos carriles independientes que se correlacionan en el motor central:
 
-Debido al tamaño de los archivos, los datasets procesados y finales no se encuentran directamente en este repositorio. Para reproducir los experimentos, siga estos pasos:
+1. **Carril A (Vector de Ataques):**
+   - **Propósito:** Detección y clasificación de categorías de intrusión (DoS, Malware/Exploits, Access Attacks, Normal).
+   - **Datos de Entrada:** 13 características métricas de flujo (CICIDS2017 + UNSW-NB15).
+   - **Extractor Latente:** CNN 1D truncada en la capa `Embedding_Attack` (16D).
+   - **Clasificador Final:** Random Forest / LightGBM / XGBoost.
 
-1. **Datos Originales:** Descargue los datasets CICIDS2017, Darknet y UNSW-NB15 de sus fuentes oficiales y colóquelos en `data/raw/`.
-2. **Datos Finales (Splits):** Los archivos `.npy` necesarios para el entrenamiento inmediato pueden ser descargados desde el siguiente enlace:
-   - [(https://drive.google.com/drive/folders/1rMrunG7TCJuxXgy-Yn6GJ_4IdAychIyz?usp=sharing)]
-3. **Ubicación:** Coloque los archivos descargados (`X_train_scaled.npy`, `y_train_ataque.npy`, etc.) en la carpeta `data/final/`.
+2. **Carril B (Análisis de Tráfico Cifrado):**
+   - **Propósito:** Identificación de tráfico cifrado vs. no cifrado (Darknet).
+   - **Datos de Entrada:** 62 características estadísticas de flujo.
+   - **Extractor Latente:** CNN 1D truncada en la capa `Embedding_Encryption` (16D).
+   - **Clasificador Final:** Random Forest / LightGBM / XGBoost.
 
-## Requisitos
+3. **Motor de Correlación y Decisión Lógica:**
+   - Evaluador central (`src/core/inference_engine.py`) que aplica reglas institucionales para detectar amenazas complejas (ej. *Malware/Exploits encapsulados en túneles VPN/Tor*) y disipar falsos positivos.
 
-Para instalar las dependencias necesarias, ejecuta:
+---
 
-```bash
-python -m venv -venv
-pip install -r requirements.txt
+## 📊 Dimensiones de Datasets y Matrices Finales
+
+### Carril A: Vector de Ataques (13 Características)
+* **Entrenamiento (`X_train_attack`):** `(870,778, 13)`
+* **Validación (`X_val_attack`):** `(610,168, 13)`
+* **Prueba Final (`X_test_attack`):** `(610,168, 13)`
+
+### Carril B: Tráfico Cifrado (62 Características)
+* **Entrenamiento (`X_train_encryption`):** `(31,871, 62)`
+* **Validación (`X_val_encryption`):** `(6,829, 62)`
+* **Prueba Final (`X_test_encryption`):** `(6,830, 62)`
+
+---
+
+## 📁 Estructura del Repositorio
+
+```text
+├── data/
+│   ├── raw/                # Datasets originales (CICIDS2017, Darknet, UNSW-NB15)
+│   ├── processed/          # Datasets unificados y limpios (formato Parquet)
+│   ├── final/              # Matrices NumPy (.npy) preprocesadas y escaladas
+│   └── scripts/            # Scripts de limpieza, homologación y unificación de labels
+├── models/                 # Artefactos y modelos entrenados
+│   ├── scalers_encoders/   # Escaladores (RobustScaler) y codificadores (.pkl)
+│   ├── deep_learning/      # Extractores de embeddings Keras (.keras)
+│   └── classifiers/        # Clasificadores finales de ML (RF, LGBM, XGBoost en .pkl)
+├── reports/
+│   └── figures/            # Curvas de aprendizaje, t-SNE y diagnósticos de overfitting (.png)
+├── src/
+│   ├── core/               # Módulos centrales de inferencia y despliegue en tiempo real
+│   │   ├── inference_engine.py      # Motor de correlación y reglas institucionales
+│   │   ├── server_nids_core.py      # Servidor TCP Socket NIDS
+│   │   └── client_probe_simulator.py# Sonda cliente simuladora de tráfico real
+│   ├── preprocessing/      # Módulos de limpieza y estandarización
+│   ├── EDA/                # Exploración de datos y gráficos exploratorios
+│   ├── deep_learning/      # Scripts de entrenamiento de CNNs 1D
+│   ├── machine_learning/   # Scripts de entrenamiento de clasificadores en espacio latente
+│   ├── ML_Simple/          # Modelos de Machine Learning baseline directos
+│   └── Results/            # Scripts de evaluación y métricas formales
+├── requirements.txt        # Dependencias del proyecto
+└── README.md               # Documentación general del repositorio
 ```
 
-## Notas sobre los Datos
+---
 
-Debido al gran tamaño de los datasets originales (CICIDS2017, Darknet, UNSW-NB15), los archivos dentro de la carpeta `data/` están excluidos del repositorio de Git mediante el archivo `.gitignore`. Asegúrate de colocar los archivos correspondientes en `data/raw/` antes de ejecutar los scripts de procesamiento.
+## 📥 Descarga de Datos y Artefactos
 
+Debido al tamaño de los conjuntos de datos masivos, las matrices finales y modelos no se almacenan completamente en el repositorio de Git.
 
+1. **Datos Originales:** Coloque los archivos descargados en `data/raw/`.
+2. **Matrices `.npy` Procesadas:** Los archivos escalados necesarios para entrenamiento e inferencia se pueden descargar en:
+   - 🔗 [Google Drive - Datasets del Proyecto](https://drive.google.com/drive/folders/1rMrunG7TCJuxXgy-Yn6GJ_4IdAychIyz?usp=sharing)
+3. **Ubicación:** Guarde las matrices descargadas (`X_train_attack.npy`, `X_train_encryption.npy`, etc.) en `data/final/`.
 
-Dataset Vector Ataque:
-==================================================
-     MATRICES EXPORTADAS MEDIANTE ROBUSTSCALER
-==================================================
-X_train_attack: (870778, 13)
-X_val_attack  : (610168, 13)
-X_test_attack : (610168, 13)
-==================================================
+---
 
+## ⚙️ Instalación y Requisitos
 
-Dataset Cifrado:
-============================================================
-     INFRAESTRUCTURA DE DATOS DE CIFRADO CONCLUIDA
-=============================================================
-Tensor de Entrenamiento (X_train_encryption) : (31871, 62)
-Tensor de Validación    (X_val_encryption)   : (6829, 62)
-Tensor de Prueba Final  (X_test_encryption)  : (6830, 62)
-=============================================================
+1. **Clonar el repositorio:**
+   ```bash
+   git clone <URL_DEL_REPOSITORIO>
+   cd Modelo_Hibrido_Ligero_Tesis
+   ```
+
+2. **Crear y activar entorno virtual:**
+   ```bash
+   python -m venv .venv
+   # En Windows PowerShell:
+   \.venv\Scripts\Activate.ps1
+   ```
+
+3. **Instalar dependencias:**
+   ```bash
+   pip install -r requirements.txt
+   ```
+
+---
+
+## 🏃‍♂️ Ejecución y Despliegue en Tiempo Real
+
+Para probar la inferencia del sistema híbrido en tiempo real mediante sockets TCP:
+
+1. **Iniciar el Servidor NIDS (Core):**
+   ```bash
+   python src/core/server_nids_core.py
+   ```
+   *El servidor cargará en memoria los artefactos desde `models/`, extractores Keras y clasificadores, quedando listo en `127.0.0.1:9999`.*
+
+2. **Ejecutar la Sonda Simuladora de Tráfico:**
+   ```bash
+   python src/core/client_probe_simulator.py
+   ```
+   *La sonda transmitirá ráfagas de tráfico extraídas de los datasets reales y el servidor emitirá los veredictos integrados.*
+=

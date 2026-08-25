@@ -23,13 +23,13 @@ X_test_raw = np.load(os.path.join(BASE_DIR,'data','final', 'X_test_encryption.np
 y_train = np.load(os.path.join(BASE_DIR,'data','final', 'y_train_encryption.npy'))
 y_test = np.load(os.path.join(BASE_DIR,'data','final', 'y_test_encryption.npy'))
 
-le_encryption = joblib.load(os.path.join(BASE_DIR,'models', 'label_encoder_encryption.pkl'))
+le_encryption = joblib.load(os.path.join(BASE_DIR, 'models', 'scalers_encoders', 'label_encoder_encryption.pkl'))
 
 # ===================================================================
 # 2. FASE 5: EXTRACCIÓN DE EMBEDDINGS DESDE LA CNN_ENCRYPTION
 # ===================================================================
 print("\n[Fase 5] Cargando CNN_Encryption y extrayendo espacio latente (16D)...")
-modelo_cnn = load_model(os.path.join(BASE_DIR,'src','Embedding', 'best_cnn_encryption_model.keras'))
+modelo_cnn = load_model(os.path.join(BASE_DIR, 'models', 'deep_learning', 'best_cnn_encryption_model.keras'))
 
 extractor_embeddings = Model(inputs=modelo_cnn.input, outputs=modelo_cnn.get_layer('Embedding_Encryption').output)
 
@@ -54,7 +54,7 @@ lgb_encryption = LGBMClassifier(
 )
 
 lgb_encryption.fit(X_train_embeddings, y_train)
-joblib.dump(lgb_encryption, os.path.join(BASE_DIR, 'src', 'Results', 'encryption_classifier_lgb.pkl'))
+joblib.dump(lgb_encryption, os.path.join(BASE_DIR, 'models', 'classifiers', 'encryption_classifier_lgb.pkl'))
 print("-> Clasificador de cifrado guardado con éxito.")
 
 # ===================================================================
@@ -65,27 +65,27 @@ print("\n[Fase 6.5] Ejecutando inferencia cruzada para análisis de generalizaci
 y_train_pred = lgb_encryption.predict(X_train_embeddings)
 y_test_pred = lgb_encryption.predict(X_test_embeddings)
 
-# --- Cálculo de Métricas para el Set de Entrenamiento (Train Set) ---
+# --- Cálculo de Métricas para el Set de Entrenamiento (Train) ---
 acc_train = accuracy_score(y_train, y_train_pred)
-prec_train = precision_score(y_train, y_train_pred, average='binary', zero_division=0)
-rec_train = recall_score(y_train, y_train_pred, average='binary', zero_division=0)
-f1_train = f1_score(y_train, y_train_pred, average='binary', zero_division=0)
-f2_train = fbeta_score(y_train, y_train_pred, beta=2.0, average='binary', zero_division=0)
+prec_train = precision_score(y_train, y_train_pred, average='macro', zero_division=0)
+rec_train = recall_score(y_train, y_train_pred, average='macro', zero_division=0)
+f1_train = f1_score(y_train, y_train_pred, average='macro', zero_division=0)
+f2_train = fbeta_score(y_train, y_train_pred, beta=2.0, average='macro', zero_division=0)
 mcc_train = matthews_corrcoef(y_train, y_train_pred)
 
-# --- Cálculo de Métricas para el Set de Prueba Independiente (Test Set) ---
+# --- Cálculo de Métricas para el Set de Prueba Independiente (Test) ---
 acc_test = accuracy_score(y_test, y_test_pred)
-prec_test = precision_score(y_test, y_test_pred, average='binary', zero_division=0)
-rec_test = recall_score(y_test, y_test_pred, average='binary', zero_division=0)
-f1_test = f1_score(y_test, y_test_pred, average='binary', zero_division=0)
-f2_test = fbeta_score(y_test, y_test_pred, beta=2.0, average='binary', zero_division=0)
+prec_test = precision_score(y_test, y_test_pred, average='macro', zero_division=0)
+rec_test = recall_score(y_test, y_test_pred, average='macro', zero_division=0)
+f1_test = f1_score(y_test, y_test_pred, average='macro', zero_division=0)
+f2_test = fbeta_score(y_test, y_test_pred, beta=2.0, average='macro', zero_division=0)
 mcc_test = matthews_corrcoef(y_test, y_test_pred)
 
 # ===================================================================
-# 4. EXPORTACIÓN VISUAL DEL ANÁLISIS DE SOBREAJUSTE (GRÁFICA)
+# 4. EXPORTACIÓN VISUAL DEL ANÁLISIS DE SOBREAJUSTE (GRAFICA)
 # ===================================================================
 print("\nGenerando gráfica científica de diagnóstico de Overfitting...")
-metrics_names = ['Exactitud\n(Accuracy)', 'Precisión\n(Precision Binaria)', 'Sensibilidad\n(Recall Binaria)', 'F1-Score\n(Binario)', 'F2-Score\n(Cripto Defensivo)', 'Coef. Matthews\n(MCC Binario)']
+metrics_names = ['Exactitud\n(Accuracy)', 'Precisión\n(Precision)', 'Sensibilidad\n(Recall)', 'F1-Score\n(Macro)', 'F2-Score\n(Defensivo)', 'Coef. Matthews\n(MCC)']
 train_metrics = [acc_train, prec_train, rec_train, f1_train, f2_train, mcc_train]
 test_metrics = [acc_test, prec_test, rec_test, f1_test, f2_test, mcc_test]
 
@@ -94,26 +94,26 @@ bar_width = 0.35
 
 fig, ax = plt.subplots(figsize=(12, 6.5), dpi=300)
 
-# Graficar barras comparativas bajo la paleta formal (Azul vs Naranja)
+# Crear barras comparativas con colores institucionales contrastantes
 bars_train = ax.bar(x_indices - bar_width/2, train_metrics, bar_width, label='Entrenamiento (Train Set)', color='#1f77b4', alpha=0.9)
 bars_test = ax.bar(x_indices + bar_width/2, test_metrics, bar_width, label='Prueba Independiente (Test Set)', color='#ff7f0e', alpha=0.9)
 
-# Configuración del lienzo bajo estándares de publicación indexada (IEEE)
+# Formatear el lienzo bajo estándares IEEE/Elsevier
 ax.set_ylabel('Valor Numérico de la Métrica (0.00 - 1.00)', fontsize=11, fontweight='bold')
-ax.set_title('Evaluación de Generalización y Diagnóstico de Overfitting - LightGBM (Carril B Cifrado)', fontsize=13, fontweight='bold', pad=15)
+ax.set_title('Evaluación de Generalización y Diagnóstico de Overfitting - LightGBM (Carril B)', fontsize=13, fontweight='bold', pad=15)
 ax.set_xticks(x_indices)
 ax.set_xticklabels(metrics_names, fontsize=10)
 ax.set_ylim(0, 1.15)
 ax.legend(loc='lower left', fontsize=11)
 ax.grid(True, linestyle=':', alpha=0.5)
 
-# Inyectar las etiquetas de texto con precisión de 4 decimales sobre cada barra
+# Función técnica para inyectar los valores flotantes sobre cada barra individual
 def label_bars(rects):
     for rect in rects:
         height = rect.get_height()
         ax.annotate(f'{height:.4f}',
                     xy=(rect.get_x() + rect.get_width() / 2, height),
-                    xytext=(0, 4),  
+                    xytext=(0, 4),
                     textcoords="offset points",
                     ha='center', va='bottom', fontsize=9, fontweight='bold')
 
@@ -121,7 +121,7 @@ label_bars(bars_train)
 label_bars(bars_test)
 
 plt.tight_layout()
-ruta_grafico_ml = os.path.join(BASE_DIR, 'src', 'Results', 'diagnostic_overfitting_lgbm_encryption.png')
+ruta_grafico_ml = os.path.join(BASE_DIR, 'reports', 'figures', 'diagnostic_overfitting_lgbm_encryption.png')
 plt.savefig(ruta_grafico_ml, dpi=300, bbox_inches='tight')
 plt.show()
 print(f"¡Gráfica de control de LightGBM guardada exitosamente en: '{ruta_grafico_ml}'!")

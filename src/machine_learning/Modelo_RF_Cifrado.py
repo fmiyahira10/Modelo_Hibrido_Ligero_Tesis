@@ -23,13 +23,13 @@ X_test_raw = np.load(os.path.join(BASE_DIR,'data','final', 'X_test_encryption.np
 y_train = np.load(os.path.join(BASE_DIR,'data','final', 'y_train_encryption.npy'))
 y_test = np.load(os.path.join(BASE_DIR,'data','final', 'y_test_encryption.npy'))
 
-le_encryption = joblib.load(os.path.join(BASE_DIR,'models', 'label_encoder_encryption.pkl'))
+le_encryption = joblib.load(os.path.join(BASE_DIR, 'models', 'scalers_encoders', 'label_encoder_encryption.pkl'))
 
 # ===================================================================
 # 2. FASE 5: EXTRACCIÓN DE EMBEDDINGS BINARIOS
 # ===================================================================
 print("\n[Fase 5] Cargando CNN_Encryption y extrayendo espacio latente de 16 dimensiones...")
-modelo_cnn = load_model(os.path.join(BASE_DIR,'src','Embedding', 'best_cnn_encryption_model.keras'))
+modelo_cnn = load_model(os.path.join(BASE_DIR, 'models', 'deep_learning', 'best_cnn_encryption_model.keras'))
 
 extractor_embeddings = Model(inputs=modelo_cnn.input, outputs=modelo_cnn.get_layer('Embedding_Encryption').output)
 
@@ -59,7 +59,7 @@ rf_encryption = RandomForestClassifier(
 rf_encryption.fit(X_train_embeddings, y_train)
 print("-> Clasificador de encriptación regularizado entrenado exitosamente.")
 
-joblib.dump(rf_encryption, os.path.join(BASE_DIR, 'src', 'Results', 'encryption_classifier_rf.pkl'))
+joblib.dump(rf_encryption, os.path.join(BASE_DIR, 'models', 'classifiers', 'encryption_classifier_rf.pkl'))
 
 # ===================================================================
 # 3.5. FASE 6.5: INFERENCIA CRUZADA PARA DIAGNÓSTICO DE OVERFITTING
@@ -125,7 +125,7 @@ label_bars(bars_train)
 label_bars(bars_test)
 
 plt.tight_layout()
-ruta_grafico_ml = os.path.join(BASE_DIR, 'src', 'Results', 'diagnostic_overfitting_rf_encryption.png')
+ruta_grafico_ml = os.path.join(BASE_DIR, 'reports', 'figures', 'diagnostic_overfitting_rf_encryption.png')
 plt.savefig(ruta_grafico_ml, dpi=300, bbox_inches='tight')
 plt.show()
 print(f"¡Gráfica de control guardada exitosamente en: '{ruta_grafico_ml}'!")

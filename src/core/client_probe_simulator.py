@@ -29,7 +29,7 @@ if __name__ == "__main__":
     print("[+] Inicializando Simulador de Sonda con Tráfico Real de Tesis...")
     
     # 1. Rutas de los datasets limpios para extraer muestras reales
-    BASE_DIR = Path(__file__).resolve().parents[1]
+    BASE_DIR = Path(__file__).resolve().parents[2]
     ruta_ataques = BASE_DIR / 'data' / 'processed' / 'Attack_Dataset_Clean.parquet'
     ruta_cifrado = BASE_DIR /'data' / 'processed' / 'Encryption_Dataset_Clean.parquet'
     

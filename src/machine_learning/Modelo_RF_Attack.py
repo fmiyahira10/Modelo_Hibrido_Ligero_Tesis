@@ -19,13 +19,13 @@ X_test_raw = np.load(os.path.join(BASE_DIR,'data','final', 'X_test_attack.npy'))
 y_train = np.load(os.path.join(BASE_DIR,'data','final', 'y_train_attack.npy'))
 y_test = np.load(os.path.join(BASE_DIR,'data','final', 'y_test_attack.npy'))
 
-le_attack = joblib.load(os.path.join(BASE_DIR,'models', 'label_encoder_attack.pkl'))
+le_attack = joblib.load(os.path.join(BASE_DIR, 'models', 'scalers_encoders', 'label_encoder_attack.pkl'))
 
 # ===================================================================
 # 2. FASE 5: EXTRACCIÓN DE EMBEDDINGS DESDE LA CNN OPERACIONAL
 # ===================================================================
 print("\n[Fase 5] Cargando arquitectura profunda y extrayendo representaciones latentes (16D)...")
-modelo_cnn = load_model(os.path.join(BASE_DIR,'src','Embedding', 'best_cnn_attack_model.keras'))
+modelo_cnn = load_model(os.path.join(BASE_DIR, 'models', 'deep_learning', 'best_cnn_attack_model.keras'))
 
 extractor_embeddings = Model(inputs=modelo_cnn.input, outputs=modelo_cnn.get_layer('Embedding_Attack').output)
 
@@ -56,61 +56,56 @@ rf_classifier = RandomForestClassifier(
 
 rf_classifier.fit(X_train_embeddings, y_train)
 print("-> Modelo Random Forest re-configurado exitosamente.")
-joblib.dump(rf_classifier, os.path.join(BASE_DIR, 'src', 'Results', 'attack_classifier_rf.pkl'))
+joblib.dump(rf_classifier, os.path.join(BASE_DIR, 'models', 'classifiers', 'attack_classifier_rf.pkl'))
 
 # ===================================================================
 # 3.5. FASE 6.5: INFERENCIA CRUZADA PARA DIAGNÓSTICO DE OVERFITTING
 # ===================================================================
 print("\n[Fase 6.5] Ejecutando inferencia cruzada para análisis de generalización...")
 # Predecimos sobre ambas particiones para medir la brecha operativa
-y_train_pred = rf_classifier.predict(X_train_embeddings)
-y_test_pred = rf_classifier.predict(X_test_embeddings)
+y_pred_train = rf_classifier.predict(X_train_embeddings)
+y_pred_test = rf_classifier.predict(X_test_embeddings)
 
-# --- Cálculo de Métricas para el Set de Entrenamiento (Train) ---
-acc_train = accuracy_score(y_train, y_train_pred)
-prec_train = precision_score(y_train, y_train_pred, average='macro', zero_division=0)
-rec_train = recall_score(y_train, y_train_pred, average='macro', zero_division=0)
-f1_train = f1_score(y_train, y_train_pred, average='macro', zero_division=0)
-f2_train = fbeta_score(y_train, y_train_pred, beta=2.0, average='macro', zero_division=0)
-mcc_train = matthews_corrcoef(y_train, y_train_pred)
+# Cálculo matricial de métricas para ambas particiones
+metrics_train = [
+    accuracy_score(y_train, y_pred_train),
+    precision_score(y_train, y_pred_train, average='macro', zero_division=0),
+    recall_score(y_train, y_pred_train, average='macro', zero_division=0),
+    f1_score(y_train, y_pred_train, average='macro', zero_division=0)
+]
 
-# --- Cálculo de Métricas para el Set de Prueba Independiente (Test) ---
-acc_test = accuracy_score(y_test, y_test_pred)
-prec_test = precision_score(y_test, y_test_pred, average='macro', zero_division=0)
-rec_test = recall_score(y_test, y_test_pred, average='macro', zero_division=0)
-f1_test = f1_score(y_test, y_test_pred, average='macro', zero_division=0)
-f2_test = fbeta_score(y_test, y_test_pred, beta=2.0, average='macro', zero_division=0)
-mcc_test = matthews_corrcoef(y_test, y_test_pred)
+metrics_test = [
+    accuracy_score(y_test, y_pred_test),
+    precision_score(y_test, y_pred_test, average='macro', zero_division=0),
+    recall_score(y_test, y_pred_test, average='macro', zero_division=0),
+    f1_score(y_test, y_pred_test, average='macro', zero_division=0)
+]
 
 # ===================================================================
-# 4. EXPORTACIÓN VISUAL DEL ANÁLISIS DE SOBREAJUSTE (GRAFICA)
+# 4. GENERACIÓN DEL GRÁFICO COMPARATIVO (TRAIN VS TEST)
 # ===================================================================
-print("\nGenerando gráfica científica de diagnóstico de Overfitting...")
-metrics_names = ['Exactitud\n(Accuracy)', 'Precisión\n(Precision)', 'Sensibilidad\n(Recall)', 'F1-Score\n(Macro)', 'F2-Score\n(Defensivo)', 'Coef. Matthews\n(MCC)']
-train_metrics = [acc_train, prec_train, rec_train, f1_train, f2_train, mcc_train]
-test_metrics = [acc_test, prec_test, rec_test, f1_test, f2_test, mcc_test]
+print("\nGenerando gráfica de barras comparativa (Train vs Test)...")
 
-x_indices = np.arange(len(metrics_names))
-bar_width = 0.35
+labels_metricas = ['Accuracy', 'Precision (Macro)', 'Recall (Macro)', 'F1-Score (Macro)']
+x = np.arange(len(labels_metricas))
+width = 0.35  # Ancho de las barras
 
-fig, ax = plt.subplots(figsize=(12, 6.5), dpi=300)
+fig, ax = plt.subplots(figsize=(10, 6), dpi=300)
 
-# Crear barras comparativas con colores institucionales contrastantes
-bars_train = ax.bar(x_indices - bar_width/2, train_metrics, bar_width, label='Entrenamiento (Train Set)', color='#1f77b4', alpha=0.9)
-bars_test = ax.bar(x_indices + bar_width/2, test_metrics, bar_width, label='Prueba Independiente (Test Set)', color='#ff7f0e', alpha=0.9)
+bars_train = ax.bar(x - width/2, metrics_train, width, label='Entrenamiento (Train)', color='#1f77b4', alpha=0.85)
+bars_test = ax.bar(x + width/2, metrics_test, width, label='Prueba Independiente (Test)', color='#ff7f0e', alpha=0.85)
 
-# Formatear el lienzo bajo estándares IEEE/Elsevier
-ax.set_ylabel('Valor Numérico de la Métrica (0.00 - 1.00)', fontsize=11, fontweight='bold')
-ax.set_title('Evaluación de Generalización y Diagnóstico de Overfitting - Random Forest (Carril A)', fontsize=13, fontweight='bold', pad=15)
-ax.set_xticks(x_indices)
-ax.set_xticklabels(metrics_names, fontsize=10)
-ax.set_ylim(0, 1.15) # Espacio extra superior para las etiquetas de texto
-ax.legend(loc='lower left', fontsize=11)
-ax.grid(True, linestyle=':', alpha=0.5)
+ax.set_title('Diagnóstico de Convergencia y Overfitting - Random Forest (Carril A)', fontweight='bold', pad=15)
+ax.set_ylabel('Puntaje de Eficiencia (0.0 - 1.0)')
+ax.set_xticks(x)
+ax.set_xticklabels(labels_metricas, fontweight='bold')
+ax.set_ylim(0.0, 1.15)  # Margen superior para etiquetas digitales
+ax.legend(loc='upper right', frameon=True)
+ax.grid(True, linestyle='--', alpha=0.3, axis='y')
 
-# Función técnica para inyectar los valores flotantes sobre cada barra individual
-def label_bars(rects):
-    for rect in rects:
+# Función auxiliar para estampar los valores exactos sobre cada barra
+def label_bars(bars):
+    for rect in bars:
         height = rect.get_height()
         ax.annotate(f'{height:.4f}',
                     xy=(rect.get_x() + rect.get_width() / 2, height),
@@ -122,7 +117,7 @@ label_bars(bars_train)
 label_bars(bars_test)
 
 plt.tight_layout()
-ruta_grafico_ml = os.path.join(BASE_DIR, 'src', 'Results', 'diagnostic_overfitting_rf_attack.png')
+ruta_grafico_ml = os.path.join(BASE_DIR, 'reports', 'figures', 'diagnostic_overfitting_rf_attack.png')
 plt.savefig(ruta_grafico_ml, dpi=300, bbox_inches='tight')
 plt.show()
 print(f"¡Gráfica de control guardada exitosamente en: '{ruta_grafico_ml}'!")

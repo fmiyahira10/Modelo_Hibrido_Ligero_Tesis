@@ -23,13 +23,13 @@ X_test_raw = np.load(os.path.join(BASE_DIR,'data','final', 'X_test_encryption.np
 y_train = np.load(os.path.join(BASE_DIR,'data','final', 'y_train_encryption.npy'))
 y_test = np.load(os.path.join(BASE_DIR,'data','final', 'y_test_encryption.npy'))
 
-le_encryption = joblib.load(os.path.join(BASE_DIR,'models', 'label_encoder_encryption.pkl'))
+le_encryption = joblib.load(os.path.join(BASE_DIR, 'models', 'scalers_encoders', 'label_encoder_encryption.pkl'))
 
 # ===================================================================
 # 2. FASE 5: EXTRACCIÓN DE EMBEDDINGS DESDE LA CNN_ENCRYPTION
 # ===================================================================
 print("\n[Fase 5] Cargando CNN_Encryption y extrayendo espacio latente (16D)...")
-modelo_cnn = load_model(os.path.join(BASE_DIR,'src','Embedding', 'best_cnn_encryption_model.keras'))
+modelo_cnn = load_model(os.path.join(BASE_DIR, 'models', 'deep_learning', 'best_cnn_encryption_model.keras'))
 
 extractor_embeddings = Model(inputs=modelo_cnn.input, outputs=modelo_cnn.get_layer('Embedding_Encryption').output)
 
@@ -57,14 +57,14 @@ xgb_encryption = XGBClassifier(
 )
 
 xgb_encryption.fit(X_train_embeddings, y_train)
-joblib.dump(xgb_encryption, os.path.join(BASE_DIR, 'src', 'Results', 'encryption_classifier_xgb.pkl'))
+joblib.dump(xgb_encryption, os.path.join(BASE_DIR, 'models', 'classifiers', 'encryption_classifier_xgb.pkl'))
 print("-> Clasificador de ataques guardado con éxito.")
 
 # ===================================================================
 # 3.5. FASE 6.5: INFERENCIA CRUZADA PARA DIAGNÓSTICO DE OVERFITTING
 # ===================================================================
 print("\n[Fase 6.5] Ejecutando inferencia cruzada para análisis de generalización binaria...")
-# Predecimos sobre ambas particiones para medir matemáticamente las brechas predictivas
+# Predecimos sobre ambas particiones para evaluar la brecha operativa real
 y_train_pred = xgb_encryption.predict(X_train_embeddings)
 y_test_pred = xgb_encryption.predict(X_test_embeddings)
 
@@ -97,7 +97,7 @@ bar_width = 0.35
 
 fig, ax = plt.subplots(figsize=(12, 6.5), dpi=300)
 
-# Graficar barras comparativas usando la paleta formal (Azul vs Naranja)
+# Graficar barras comparativas bajo la paleta formal (Azul vs Naranja)
 bars_train = ax.bar(x_indices - bar_width/2, train_metrics, bar_width, label='Entrenamiento (Train Set)', color='#1f77b4', alpha=0.9)
 bars_test = ax.bar(x_indices + bar_width/2, test_metrics, bar_width, label='Prueba Independiente (Test Set)', color='#ff7f0e', alpha=0.9)
 
@@ -110,7 +110,7 @@ ax.set_ylim(0, 1.15)
 ax.legend(loc='lower left', fontsize=11)
 ax.grid(True, linestyle=':', alpha=0.5)
 
-# Inyectar los valores flotantes numéricos con precisión de 4 decimales sobre cada barra
+# Inyectar las etiquetas de texto con precisión de 4 decimales sobre cada barra
 def label_bars(rects):
     for rect in rects:
         height = rect.get_height()
@@ -124,7 +124,7 @@ label_bars(bars_train)
 label_bars(bars_test)
 
 plt.tight_layout()
-ruta_grafico_ml = os.path.join(BASE_DIR, 'src', 'Results', 'diagnostic_overfitting_xgb_encryption.png')
+ruta_grafico_ml = os.path.join(BASE_DIR, 'reports', 'figures', 'diagnostic_overfitting_xgb_encryption.png')
 plt.savefig(ruta_grafico_ml, dpi=300, bbox_inches='tight')
 plt.show()
 print(f"¡Gráfica de control guardada exitosamente en: '{ruta_grafico_ml}'!")

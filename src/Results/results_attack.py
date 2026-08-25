@@ -18,13 +18,13 @@ X_test_raw = np.load(os.path.join(BASE_DIR, 'data', 'final', 'X_test_attack.npy'
 y_test = np.load(os.path.join(BASE_DIR, 'data', 'final', 'y_test_attack.npy'))
 
 # Cargar Label Encoder para ver los nombres reales de los ataques
-le_attack = joblib.load(os.path.join(BASE_DIR, 'models', 'label_encoder_attack.pkl'))
+le_attack = joblib.load(os.path.join(BASE_DIR, 'models', 'scalers_encoders', 'label_encoder_attack.pkl'))
 
 # ===================================================================
 # 2. CARGAR CNN Y EXTRAER EMBEDDINGS (Paso Crucial)
 # ===================================================================
 print("\nCargando arquitectura profunda para extraer representaciones latentes (16D)...")
-modelo_cnn = load_model(os.path.join(BASE_DIR, 'src', 'Embedding', 'best_cnn_attack_model.keras'))
+modelo_cnn = load_model(os.path.join(BASE_DIR, 'models', 'deep_learning', 'best_cnn_attack_model.keras'))
 
 # Truncar la red en la capa intermedia 'Embedding_Attack'
 extractor_embeddings = Model(inputs=modelo_cnn.input, outputs=modelo_cnn.get_layer('Embedding_Attack').output)
@@ -40,7 +40,7 @@ X_test_embeddings = extractor_embeddings.predict(X_test_reshaped)
 # 3. CARGAR RANDOM FOREST Y EJECUTAR INFERENCIA
 # ===================================================================
 print("\nCargando clasificador Random Forest guardado...")
-modelo_rf = joblib.load(os.path.join(BASE_DIR, 'src', 'Results', 'attack_classifier_rf.pkl'))
+modelo_rf = joblib.load(os.path.join(BASE_DIR, 'models', 'classifiers', 'attack_classifier_rf.pkl'))
 
 print("Ejecutando inferencia sobre los embeddings de prueba...")
 y_pred = modelo_rf.predict(X_test_embeddings)

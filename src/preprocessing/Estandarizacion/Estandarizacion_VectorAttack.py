@@ -27,7 +27,7 @@ target = 'attack_vector'
 # ===================================================================
 le_attack = LabelEncoder()
 df['attack_vector_encoded'] = le_attack.fit_transform(df[target])
-joblib.dump(le_attack, os.path.join(BASE_DIR, 'models', 'label_encoder_attack.pkl'))
+joblib.dump(le_attack, os.path.join(BASE_DIR, 'models', 'scalers_encoders', 'label_encoder_attack.pkl'))
 
 X = df[columnas_features]
 y = df['attack_vector_encoded']
@@ -73,7 +73,7 @@ X_val_scaled = scaler.transform(X_val)
 X_test_scaled = scaler.transform(X_test)
 
 # Guardar escalador robusto
-joblib.dump(scaler, os.path.join(BASE_DIR, 'models', 'robust_scaler_attack.pkl'))
+joblib.dump(scaler, os.path.join(BASE_DIR, 'models', 'scalers_encoders', 'robust_scaler_attack.pkl'))
 
 # ===================================================================
 # 6. SERIALIZACIÓN DE MATRICES FINALES

@@ -28,7 +28,7 @@ X_test = np.load(os.path.join(BASE_DIR,'data' ,'final', 'X_test_attack.npy'))
 y_test = np.load(os.path.join(BASE_DIR,'data' ,'final', 'y_test_attack.npy'))
 
 # Recuperar el codificador de etiquetas para poner los nombres reales en el gráfico
-le_attack = joblib.load(os.path.join(BASE_DIR,'models', 'label_encoder_attack.pkl'))
+le_attack = joblib.load(os.path.join(BASE_DIR, 'models', 'scalers_encoders', 'label_encoder_attack.pkl'))
 
 # Formatear el tensor para la entrada Conv1D (muestras, 13, 1)
 X_test_reshaped = np.expand_dims(X_test, axis=-1)
@@ -37,7 +37,7 @@ X_test_reshaped = np.expand_dims(X_test, axis=-1)
 # 2. CARGA DEL MEJOR MODELO Y RECORTE DE LA CAPA LATENTE
 # ===================================================================
 print("\nCargando el mejor modelo convolucional guardado (Época 6)...")
-modelo_completo = load_model(os.path.join(BASE_DIR,'src', 'Embedding', 'best_cnn_attack_model.keras'))
+modelo_completo = load_model(os.path.join(BASE_DIR, 'models', 'deep_learning', 'best_cnn_attack_model.keras'))
 
 # Creamos un submodelo truncado que tenga la misma entrada, 
 # pero cuya salida sea exclusivamente la capa dense llamada 'Embedding_Attack'
@@ -91,7 +91,7 @@ ax.legend(title="Macro-Vectores de Ataque", bbox_to_anchor=(1.05, 1), loc='upper
 ax.grid(True, linestyle=':', alpha=0.5)
 
 plt.tight_layout()
-ruta_grafico = os.path.join(BASE_DIR, 'src', 'Embedding', 'espacio_latente_tsne_attacks.png')
+ruta_grafico = os.path.join(BASE_DIR, 'reports', 'figures', 'espacio_latente_tsne_attacks.png')
 plt.savefig(ruta_grafico, dpi=300)
 plt.close()
 

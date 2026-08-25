@@ -34,7 +34,7 @@ y_train = np.load(os.path.join(BASE_DIR,'data','final', 'y_train_encryption.npy'
 y_val = np.load(os.path.join(BASE_DIR,'data','final', 'y_val_encryption.npy'))
 y_test = np.load(os.path.join(BASE_DIR,'data','final', 'y_test_encryption.npy'))
 
-le_encryption = joblib.load(os.path.join(BASE_DIR,'models', 'label_encoder_encryption.pkl'))
+le_encryption = joblib.load(os.path.join(BASE_DIR,'models', 'scalers_encoders', 'label_encoder_encryption.pkl'))
 
 # --- REFORMA TRIDIMENSIONAL PARA PROCESAMIENTO CONVOLUCIONAL ---
 X_train_reshaped = np.expand_dims(X_train, axis=-1)
@@ -98,7 +98,7 @@ model_encryption.compile(
 callbacks_list = [
     EarlyStopping(monitor='val_loss', patience=5, restore_best_weights=True, verbose=1),
     ModelCheckpoint(
-        filepath=os.path.join(BASE_DIR, 'src', 'Embedding', 'best_cnn_encryption_model.keras'),
+        filepath=os.path.join(BASE_DIR, 'models', 'deep_learning', 'best_cnn_encryption_model.keras'),
         monitor='val_loss', save_best_only=True, verbose=1
     )
 ]
@@ -118,7 +118,7 @@ history = model_encryption.fit(
 # 3.5. GENERACIÓN Y ALMACENAMIENTO DE CURVAS DE APRENDIZAJE (CARRIL B)
 # ===================================================================
 print("\nGenerando gráficos de rendimiento del submodelo de cifrado...")
-output_perf_path = os.path.join(BASE_DIR, 'src', 'Embedding', 'curvas_rendimiento_encryption.png')
+output_perf_path = os.path.join(BASE_DIR, 'reports', 'figures', 'curvas_rendimiento_encryption.png')
 
 fig, (ax1, ax2) = plt.subplots(1, 2, figsize=(16, 6), dpi=300)
 
@@ -182,7 +182,7 @@ ax.legend(title="Estado de Encriptación", loc='best')
 ax.grid(True, linestyle=':', alpha=0.5)
 
 plt.tight_layout()
-ruta_grafico = os.path.join(BASE_DIR, 'src', 'Embedding', 'espacio_latente_tsne_encryption.png')
+ruta_grafico = os.path.join(BASE_DIR, 'reports', 'figures', 'espacio_latente_tsne_encryption.png')
 plt.savefig(ruta_grafico, dpi=300)
 plt.close()
 

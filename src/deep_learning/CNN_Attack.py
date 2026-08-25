@@ -77,7 +77,7 @@ callbacks_list = [
         verbose=1
     ),
     ModelCheckpoint(
-        filepath=os.path.join(BASE_DIR, 'src', 'Embedding', 'best_cnn_attack_model.keras'),
+        filepath=os.path.join(BASE_DIR, 'models', 'deep_learning', 'best_cnn_attack_model.keras'),
         monitor='val_loss',
         save_best_only=True,
         verbose=1
@@ -108,7 +108,7 @@ import matplotlib.pyplot as plt
 print("\nGenerando gráficos de rendimiento del submodelo...")
 
 # Definir la ruta de salida para la documentación de la tesis
-output_graph_path = os.path.join(BASE_DIR, 'src', 'Embedding', 'curvas_rendimiento_attack.png')
+output_graph_path = os.path.join(BASE_DIR, 'reports', 'figures', 'curvas_rendimiento_attack.png')
 
 # Configurar el lienzo de visualización con dos subgráficas (Loss y Accuracy)
 fig, (ax1, ax2) = plt.subplots(1, 2, figsize=(16, 6))

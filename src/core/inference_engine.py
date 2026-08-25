@@ -22,18 +22,18 @@ class InferenceAndCorrelationEngine:
         """Carga escaladores, codificadores y clasificadores de ensamble."""
         try:
             # Carril A: Ataques
-            self.scaler_attack = joblib.load(self.tesis_dir / 'models' / 'robust_scaler_attack.pkl')
-            self.le_attack = joblib.load(self.tesis_dir / 'models' / 'label_encoder_attack.pkl')
-            self.clf_rf_attack = joblib.load(self.tesis_dir / 'src' / 'Results' / 'attack_classifier_rf.pkl')
+            self.scaler_attack = joblib.load(self.tesis_dir / 'models' / 'scalers_encoders' / 'robust_scaler_attack.pkl')
+            self.le_attack = joblib.load(self.tesis_dir / 'models' / 'scalers_encoders' / 'label_encoder_attack.pkl')
+            self.clf_rf_attack = joblib.load(self.tesis_dir / 'models' / 'classifiers' / 'attack_classifier_rf.pkl')
             
             # Carril B: Cifrado
-            self.scaler_encryption = joblib.load(self.tesis_dir / 'models' / 'robust_scaler_encryption.pkl')
-            self.le_encryption = joblib.load(self.tesis_dir / 'models' / 'label_encoder_encryption.pkl')
-            self.clf_rf_encryption = joblib.load(self.tesis_dir / 'src' / 'Results' / 'encryption_classifier_rf.pkl')
+            self.scaler_encryption = joblib.load(self.tesis_dir / 'models' / 'scalers_encoders' / 'robust_scaler_encryption.pkl')
+            self.le_encryption = joblib.load(self.tesis_dir / 'models' / 'scalers_encoders' / 'label_encoder_encryption.pkl')
+            self.clf_rf_encryption = joblib.load(self.tesis_dir / 'models' / 'classifiers' / 'encryption_classifier_rf.pkl')
             
             # Modelos Keras Completos
-            self.cnn_full_attack = load_model(self.tesis_dir / 'src' / 'Embedding' /'best_cnn_attack_model.keras')
-            self.cnn_full_encryption = load_model(self.tesis_dir / 'src' / 'Embedding' /'best_cnn_encryption_model.keras')
+            self.cnn_full_attack = load_model(self.tesis_dir / 'models' / 'deep_learning' / 'best_cnn_attack_model.keras')
+            self.cnn_full_encryption = load_model(self.tesis_dir / 'models' / 'deep_learning' / 'best_cnn_encryption_model.keras')
         except Exception as e:
             raise RuntimeError(f"Error crítico al cargar artefactos desde {self.tesis_dir}: {str(e)}")
 
@@ -111,8 +111,8 @@ class InferenceAndCorrelationEngine:
 # INSTANCIACIÓN DE PRUEBA DE INFERENCIA
 # ===================================================================
 if __name__ == "__main__":
-    # Define la raíz de tu proyecto local
-    RAIZ_PROYECTO = Path(__file__).resolve().parents[1]
+    # Define la raíz de tu proyecto local (sube 2 niveles desde src/core)
+    RAIZ_PROYECTO = Path(__file__).resolve().parents[2]
     
     # Instanciamos el motor
     engine = InferenceAndCorrelationEngine(base_dir=RAIZ_PROYECTO)
