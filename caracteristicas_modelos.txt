@@ -1,0 +1,86 @@
+======================================================================
+ LISTA Y ORDEN EXACTO DE CARACTERÍSTICAS PARA EL ENTRENAMIENTO
+======================================================================
+
+----------------------------------------------------------------------
+1. MODELO DE VECTOR DE ATAQUE (CARRIL A) - Total: 13 características
+----------------------------------------------------------------------
+ 1. flow_duration
+ 2. fwd_packets
+ 3. bwd_packets
+ 4. fwd_bytes
+ 5. bwd_bytes
+ 6. fwd_packet_len_mean
+ 7. bwd_packet_len_mean
+ 8. fwd_iat_mean
+ 9. bwd_iat_mean
+10. fwd_tcp_window
+11. bwd_tcp_window
+12. flow_packets_per_sec
+13. flow_bytes_per_sec
+
+----------------------------------------------------------------------
+2. MODELO DE ENCRIPTACIÓN / CIFRADO (CARRIL B) - Total: 62 características
+----------------------------------------------------------------------
+ 1. Protocol
+ 2. Flow Duration
+ 3. Total Fwd Packet
+ 4. Total Bwd packets
+ 5. Total Length of Fwd Packet
+ 6. Total Length of Bwd Packet
+ 7. Fwd Packet Length Max
+ 8. Fwd Packet Length Min
+ 9. Fwd Packet Length Mean
+10. Fwd Packet Length Std
+11. Bwd Packet Length Max
+12. Bwd Packet Length Min
+13. Bwd Packet Length Mean
+14. Bwd Packet Length Std
+15. Flow Bytes/s
+16. Flow Packets/s
+17. Flow IAT Mean
+18. Flow IAT Std
+19. Flow IAT Max
+20. Flow IAT Min
+21. Fwd IAT Total
+22. Fwd IAT Mean
+23. Fwd IAT Std
+24. Fwd IAT Max
+25. Fwd IAT Min
+26. Bwd IAT Total
+27. Bwd IAT Mean
+28. Bwd IAT Std
+29. Bwd IAT Max
+30. Bwd IAT Min
+31. Fwd PSH Flags
+32. Fwd Header Length
+33. Bwd Header Length
+34. Fwd Packets/s
+35. Bwd Packets/s
+36. Packet Length Min
+37. Packet Length Max
+38. Packet Length Mean
+39. Packet Length Std
+40. Packet Length Variance
+41. FIN Flag Count
+42. SYN Flag Count
+43. RST Flag Count
+44. PSH Flag Count
+45. ACK Flag Count
+46. Down/Up Ratio
+47. Average Packet Size
+48. Fwd Segment Size Avg
+49. Bwd Segment Size Avg
+50. Bwd Packet/Bulk Avg
+51. Bwd Bulk Rate Avg
+52. Subflow Fwd Packets
+53. Subflow Fwd Bytes
+54. Subflow Bwd Bytes
+55. FWD Init Win Bytes
+56. Bwd Init Win Bytes
+57. Fwd Act Data Pkts
+58. Fwd Seg Size Min
+59. Idle Mean
+60. Idle Std
+61. Idle Max
+62. Idle Min
