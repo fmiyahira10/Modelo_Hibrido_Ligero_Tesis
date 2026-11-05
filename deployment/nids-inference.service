@@ -1,0 +1,26 @@
+[Unit]
+Description=Inferencia local de la tesis - recibe caracteristicas de una sonda
+After=network.target
+StartLimitIntervalSec=120
+StartLimitBurst=3
+
+[Service]
+Type=simple
+User=tesis
+Group=tesis
+WorkingDirectory=/home/tesis/tesis/Modelo_Hibrido_Ligero_Tesis
+Environment=PYTHONUNBUFFERED=1
+Environment=CUDA_VISIBLE_DEVICES=-1
+Environment=TF_NUM_INTRAOP_THREADS=2
+Environment=TF_NUM_INTEROP_THREADS=1
+Environment=OMP_NUM_THREADS=2
+Environment=OPENBLAS_NUM_THREADS=2
+Environment=NIDS_RF_THREADS=2
+ExecStart=/home/tesis/tesis/Modelo_Hibrido_Ligero_Tesis/.venv/bin/python src/core/server_nids_core.py
+Restart=on-failure
+RestartSec=10
+TimeoutStopSec=20
+UMask=0027
+
+[Install]
+WantedBy=multi-user.target

@@ -1,133 +1,138 @@
+"""Inferencia de vectores crudos. No captura paquetes ni crea características."""
 import os
-import numpy as np
-import tensorflow as tf
-from tensorflow.keras.models import load_model, Model
-import joblib
-from pathlib import Path
+os.environ.setdefault('TF_CPP_MIN_LOG_LEVEL', '2')
+os.environ.setdefault('CUDA_VISIBLE_DEVICES', '-1')
 
-# Desactivar logs innecesarios de TensorFlow para una consola limpia
-os.environ['TF_CPP_MIN_LOG_LEVEL'] = '3'
+import hashlib
+from importlib.metadata import version
+import time
+import warnings
+from pathlib import Path
+import joblib
+import numpy as np
+import pandas as pd
+from sklearn.exceptions import InconsistentVersionWarning
+
+ARTIFACTS = {
+    'scaler_attack': 'models/scalers_encoders/robust_scaler_attack.pkl',
+    'le_attack': 'models/scalers_encoders/label_encoder_attack.pkl',
+    'clf_rf_attack': 'models/classifiers/attack_classifier_rf.pkl',
+    'scaler_encryption': 'models/scalers_encoders/robust_scaler_encryption.pkl',
+    'le_encryption': 'models/scalers_encoders/label_encoder_encryption.pkl',
+    'clf_rf_encryption': 'models/classifiers/encryption_classifier_rf.pkl',
+    'cnn_full_attack': 'models/deep_learning/best_cnn_attack_model.keras',
+    'cnn_full_encryption': 'models/deep_learning/best_cnn_encryption_model.keras',
+}
+
+
+def inventory(base_dir):
+    result = {}
+    for key, relative in ARTIFACTS.items():
+        path = Path(base_dir) / relative
+        record = {'path': relative, 'exists': path.is_file()}
+        if path.is_file():
+            with path.open('rb') as stream:
+                record['sha256'] = hashlib.file_digest(stream, 'sha256').hexdigest()
+            record['bytes'] = path.stat().st_size
+        result[key] = record
+    return result
+
+
+def raw_frame(values, scaler):
+    names = list(scaler.feature_names_in_)
+    if isinstance(values, dict):
+        if set(values) != set(names):
+            raise ValueError('Características ausentes o desconocidas; no se rellenan con ceros')
+        values = [values[name] for name in names]
+    a = np.asarray(values)
+    if a.ndim != 1 or len(a) != len(names) or a.dtype.kind not in 'iuf':
+        raise ValueError(f'Se requieren {len(names)} valores numéricos crudos en una dimensión')
+    a = a.astype(np.float64)
+    if not np.isfinite(a).all():
+        raise ValueError('Hay NaN o infinito en las características')
+    return pd.DataFrame([a], columns=names)
+
 
 class InferenceAndCorrelationEngine:
     def __init__(self, base_dir):
-        self.base_dir = base_dir
-        self.tesis_dir = Path(base_dir)
-        
-        print("[-] Inicializando Motor de Correlación Híbrido Ligero...")
-        self._load_artifacts()
-        self._build_extractors()
-        print("[+] Todos los módulos y modelos cargados con éxito en memoria.")
+        self.tesis_dir = Path(base_dir).resolve()
+        self.artifacts = inventory(self.tesis_dir)
+        missing = [v['path'] for v in self.artifacts.values() if not v['exists']]
+        if missing:
+            raise FileNotFoundError('Faltan artefactos: ' + ', '.join(missing))
+        from tensorflow.keras.models import load_model, Model
+        with warnings.catch_warnings():
+            warnings.simplefilter('error', InconsistentVersionWarning)
+            for attr, relative in ARTIFACTS.items():
+                path = self.tesis_dir / relative
+                obj = load_model(path, compile=False) if path.suffix == '.keras' else joblib.load(path)
+                setattr(self, attr, obj)
+        for lane, count, layer in [('attack', 13, 'Embedding_Attack'),
+                                   ('encryption', 62, 'Embedding_Encryption')]:
+            scaler = getattr(self, 'scaler_' + lane)
+            model = getattr(self, 'cnn_full_' + lane)
+            clf = getattr(self, 'clf_rf_' + lane)
+            encoder = getattr(self, 'le_' + lane)
+            if getattr(scaler, 'n_features_in_', None) != count:
+                raise ValueError(f'Escalador incompatible: {lane}')
+            if len(getattr(scaler, 'feature_names_in_', [])) != count:
+                raise ValueError(f'Falta el orden de características de {lane}')
+            if tuple(model.input_shape[1:]) != (count, 1):
+                raise ValueError(f'Entrada CNN incompatible: {lane}: {model.input_shape}')
+            extractor = Model(inputs=model.inputs, outputs=model.get_layer(layer).output)
+            if extractor.output_shape[-1] != getattr(clf, 'n_features_in_', None):
+                raise ValueError(f'Embedding y clasificador incompatibles: {lane}')
+            if not np.array_equal(np.sort(clf.classes_), np.arange(len(encoder.classes_))):
+                raise ValueError(f'Codificador y clases incompatibles: {lane}')
+            if hasattr(clf, 'n_jobs'):
+                clf.n_jobs = int(os.environ.get('NIDS_RF_THREADS', '2'))
+            if hasattr(clf, 'verbose'):
+                clf.verbose = 0
+            setattr(self, 'extractor_' + lane, extractor)
+        if set(self.le_attack.classes_) != {'Normal', 'DoS', 'Generic', 'Malware_Exploits',
+                                            'Access_Attacks', 'Reconnaissance'}:
+            raise ValueError('Las macroclases no coinciden con el contrato')
+        if set(self.le_encryption.classes_) != {'Cifrado', 'No Cifrado'}:
+            raise ValueError('Las clases de cifrado no coinciden con el contrato')
 
-    def _load_artifacts(self):
-        """Carga escaladores, codificadores y clasificadores de ensamble."""
-        try:
-            # Carril A: Ataques
-            self.scaler_attack = joblib.load(self.tesis_dir / 'models' / 'scalers_encoders' / 'robust_scaler_attack.pkl')
-            self.le_attack = joblib.load(self.tesis_dir / 'models' / 'scalers_encoders' / 'label_encoder_attack.pkl')
-            self.clf_rf_attack = joblib.load(self.tesis_dir / 'models' / 'classifiers' / 'attack_classifier_rf.pkl')
-            
-            # Carril B: Cifrado
-            self.scaler_encryption = joblib.load(self.tesis_dir / 'models' / 'scalers_encoders' / 'robust_scaler_encryption.pkl')
-            self.le_encryption = joblib.load(self.tesis_dir / 'models' / 'scalers_encoders' / 'label_encoder_encryption.pkl')
-            self.clf_rf_encryption = joblib.load(self.tesis_dir / 'models' / 'classifiers' / 'encryption_classifier_rf.pkl')
-            
-            # Modelos Keras Completos
-            self.cnn_full_attack = load_model(self.tesis_dir / 'models' / 'deep_learning' / 'best_cnn_attack_model.keras')
-            self.cnn_full_encryption = load_model(self.tesis_dir / 'models' / 'deep_learning' / 'best_cnn_encryption_model.keras')
-        except Exception as e:
-            raise RuntimeError(f"Error crítico al cargar artefactos desde {self.tesis_dir}: {str(e)}")
-
-    def _build_extractors(self):
-        """Trunca las capas de clasificación de las CNNs para usarlas como extractores latentes."""
-        self.extractor_attack = Model(
-            inputs=self.cnn_full_attack.input, 
-            outputs=self.cnn_full_attack.get_layer('Embedding_Attack').output
-        )
-        self.extractor_encryption = Model(
-            inputs=self.cnn_full_encryption.input, 
-            outputs=self.cnn_full_encryption.get_layer('Embedding_Encryption').output
-        )
+    def describe(self):
+        return {'versions': {name: version(name) for name in
+                ('tensorflow', 'keras', 'numpy', 'pandas', 'scipy', 'scikit-learn', 'joblib')},
+                'artifacts': self.artifacts, 'features': {
+            lane: getattr(self, 'scaler_' + lane).feature_names_in_.tolist()
+            for lane in ('attack', 'encryption')}, 'classes': {
+            lane: getattr(self, 'le_' + lane).classes_.tolist()
+            for lane in ('attack', 'encryption')}}
 
     def process_flow(self, features_attack_raw, features_encryption_raw):
-        """
-        Procesa de manera híbrida un flujo de red simulado o real.
-        features_attack_raw: Arreglo de 13 características crudas para el carril A.
-        features_encryption_raw: Arreglo de 62 características crudas para el carril B.
-        """
-        # Asegurar formato matricial de 2D para los escaladores de scikit-learn
-        feat_at_2d = np.array(features_attack_raw).reshape(1, -1)
-        feat_enc_2d = np.array(features_encryption_raw).reshape(1, -1)
-        
-        # 1. ESCALADO ROBUSTO INDEPENDIENTE (Prevención de distorsión por outliers)
-        at_scaled = self.scaler_attack.transform(feat_at_2d)
-        enc_scaled = self.scaler_encryption.transform(feat_enc_2d)
-        
-        # 2. REFORMATO 3D PARA REDES CONVOLUCIONALES (muestras, variables, 1)
-        at_3d = np.expand_dims(at_scaled, axis=-1)
-        enc_3d = np.expand_dims(enc_scaled, axis=-1)
-        
-        # 3. EXTRACCIÓN DE CARACTERÍSTICAS LATENTES (Fase 5)
-        emb_attack = self.extractor_attack.predict(at_3d, verbose=0)
-        emb_encryption = self.extractor_encryption.predict(enc_3d, verbose=0)
-        
-        # 4. INFERENCIA MEDIANTE CLASIFICADORES DE ENSAMBLE (Fase 6)
-        pred_at_code = self.clf_rf_attack.predict(emb_attack)[0]
-        pred_enc_code = self.clf_rf_encryption.predict(emb_encryption)[0]
-        
-        # Decodificación de los nombres reales de las etiquetas
-        label_attack = self.le_attack.inverse_transform([pred_at_code])[0]
-        label_encryption = self.le_encryption.inverse_transform([pred_enc_code])[0]
-        
-        # 5. MATRIZ DE DECISIÓN DEL MOTOR DE CORRELACIÓN LOGICA (Fase 11)
-        veredicto_final = self._correlate_verdicts(label_attack, label_encryption)
-        
+        start = time.perf_counter()
+        labels, scores = {}, {}
+        for lane, raw in [('attack', features_attack_raw), ('encryption', features_encryption_raw)]:
+            scaler = getattr(self, 'scaler_' + lane)
+            scaled = scaler.transform(raw_frame(raw, scaler))
+            if not np.isfinite(scaled).all():
+                raise ValueError('El escalado produjo valores no finitos')
+            embedding = np.asarray(getattr(self, 'extractor_' + lane)(scaled[..., None], training=False))
+            if not np.isfinite(embedding).all():
+                raise ValueError('El embedding contiene valores no finitos')
+            clf = getattr(self, 'clf_rf_' + lane)
+            encoder = getattr(self, 'le_' + lane)
+            code = clf.predict(embedding)[0]
+            labels[lane] = str(encoder.inverse_transform([code])[0])
+            probabilities = clf.predict_proba(embedding)[0]
+            scores[lane] = {str(label): float(p) for label, p in zip(
+                encoder.inverse_transform(clf.classes_), probabilities)}
+        attack, encryption = labels['attack'], labels['encryption']
         return {
-            'Carril_A_ataques': label_attack,
-            'Carril_B_cifrado': label_encryption,
-            'Veredicto_IDS': veredicto_final
+            'Carril_A_ataques': attack, 'Carril_B_cifrado': encryption,
+            'Veredicto_IDS': self._correlate_verdicts(attack, encryption),
+            'alert': attack != 'Normal', 'action_executed': 'none', 'scores': scores,
+            'inference_ms': (time.perf_counter() - start) * 1000,
+            'encryption_label_scope': 'VPN/Tor frente a NonVPN/Non-Tor según entrenamiento',
         }
 
-    def _correlate_verdicts(self, attack, encryption):
-        """Aplica las reglas lógicas institucionales para la mitigación de falsos positivos."""
-        if attack == "Normal" and encryption == "No Cifrado":
-            return "Tráfico Benigno Estándar - Permitido"
-            
-        elif attack == "Normal" and encryption == "Cifrado":
-            return "Alerta Lenta: Uso de Túnel Criptográfico (VPN/Tor) sin anomalía aparente - Monitorear"
-            
-        elif attack != "Normal" and encryption == "No Cifrado":
-            return f"CRÍTICO: Intrusión Activa Detectada en Texto Plano [{attack}] - Bloqueo Inmediato"
-            
-        elif attack != "Normal" and encryption == "Cifrado":
-            # Regla de oro de tu matriz: disipar el falso positivo si es malware/exploit enmascarado
-            if attack in ["Malware_Exploits", "Access_Attacks"]:
-                return f"ALERTA SEVERA: Amenaza Altamente Ofuscada Encapsulada [{attack} sobre canal {encryption}] - Activando Inspección Especial"
-            else:
-                return f"CRÍTICO: Intrusión Detectada en Canal Cifrado [{attack}] - Bloquear IP de Origen"
-        
-        return "Estado Indeterminado - Revisión de Sonda"
-
-# ===================================================================
-# INSTANCIACIÓN DE PRUEBA DE INFERENCIA
-# ===================================================================
-if __name__ == "__main__":
-    # Define la raíz de tu proyecto local (sube 2 niveles desde src/core)
-    RAIZ_PROYECTO = Path(__file__).resolve().parents[2]
-    
-    # Instanciamos el motor
-    engine = InferenceAndCorrelationEngine(base_dir=RAIZ_PROYECTO)
-    
-    # Simulamos la llegada de un flujo sospechoso de DoS (13 features crudas) que viaja en texto plano (62 features crudas)
-    flujo_ataque_simulado_13d = [1.5, 4.0, 2.0, 500.0, 120.0, 125.0, 60.0, 0.5, 0.2, 1024, 1024, 4.0, 413.3]
-    flujo_cifrado_simulado_62d = [0.0] * 62 # Llenamos de ceros simulados para la prueba
-    
-    # Procesamos el flujo
-    resultado = engine.process_flow(flujo_ataque_simulado_13d, flujo_cifrado_simulado_62d)
-    
-    print("\n" + "="*50)
-    print("        RESULTADO DEL MOTOR DE CORRELACIÓN CORE")
-    print("="*50)
-    print(f" Diagnóstico Carril A (Ataques) : {resultado['Carril_A_ataques']}")
-    print(f" Diagnóstico Carril B (Cifrado) : {resultado['Carril_B_cifrado']}")
-    print(f" -> VEREDICTO INTEGRADO NIDS    : {resultado['Veredicto_IDS']}")
-    print("="*50)
+    @staticmethod
+    def _correlate_verdicts(attack, encryption):
+        if attack == 'Normal':
+            return f'Sin ataque predicho; carril B: {encryption}'
+        return f'Ataque predicho: {attack}; carril B: {encryption}; pendiente de evaluación'

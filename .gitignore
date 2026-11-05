@@ -93,3 +93,15 @@ src/ML_Simple/Resultados/*.pkl
 .DS_Store
 Thumbs.db
 desktop.ini
+
+# Capturas, registros y respaldos locales del experimento
+runtime/
+*.pcapng
+
+# Entornos y archivos locales del laboratorio
+.venv*/
+*.bak
+*.bak-*
+.env
+.env.*
+!.env.example
