@@ -1,5 +1,40 @@
 # Modelo Híbrido Ligero NIDS: Deep Learning & Machine Learning
 
+## Versión de laboratorio: Ubuntu + OpenVINO
+
+La versión adaptada de vm-modelo está en la rama
+[`lab/ubuntu-openvino`](https://github.com/fmiyahira10/Modelo_Hibrido_Ligero_Tesis/tree/lab/ubuntu-openvino).
+
+- Respaldo del 2026-11-05: commit
+  [`d1f07b7`](https://github.com/fmiyahira10/Modelo_Hibrido_Ligero_Tesis/commit/d1f07b70b79af8586b9e4dae3ac3ce879ce768e7).
+- Entorno: Ubuntu 24.04 LTS, Python 3.12.15, Keras 3.14.1 y
+  OpenVINO 2025.4.1.
+- Dependencias exactas: `requirements-ubuntu-openvino.txt` en esa rama.
+- [Guía de instalación, configuración y arranque](https://github.com/fmiyahira10/Modelo_Hibrido_Ligero_Tesis/blob/d1f07b70b79af8586b9e4dae3ac3ce879ce768e7/deployment/README-ubuntu-openvino.md).
+
+Esta adaptación utiliza OpenVINO porque TensorFlow produjo un error de
+instrucción ilegal en la VM del laboratorio, cuya CPU no presenta AVX.
+
+Arranque manual en la VM existente, desde la raíz del repositorio y
+con la rama de laboratorio seleccionada:
+
+```bash
+source .venv_openvino312/bin/activate
+export KERAS_BACKEND=openvino
+python src/core/server_nids_openvino.py
+```
+
+El respaldo conserva el carril B anterior, basado en VPN/Tor frente a
+NonVPN/Non-Tor. Las pruebas mostraron que no identifica adecuadamente
+HTTPS/TLS como cifrado; su reentrenamiento con CICIDS reetiquetado está
+pendiente.
+
+Los modelos y demás archivos excluidos de Git deben respaldarse por
+separado. Sus hashes se encuentran en `deployment/SHA256SUMS-modelos.txt`
+en la rama de laboratorio.
+
+---
+
 Este proyecto implementa un **Sistema de Detección de Intrusiones en Red (NIDS)** de arquitectura híbrida y ligera, diseñado para la detección avanzada de ciberamenazas y clasificación de tráfico cifrado en tiempo real. 
 
 El sistema utiliza **Redes Neuronales Convolucionales 1D (CNN 1D)** para la reducción de dimensionalidad y extracción de representaciones latentes (*embeddings* de 16 dimensiones), combinadas con clasificadores de **Machine Learning (Random Forest, LightGBM y XGBoost)** para la decisión final y un **Motor de Inferencia y Correlación Lógica** para la mitigación de falsos positivos.
