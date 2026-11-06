@@ -1,0 +1,213 @@
+{
+  "estado": "completo",
+  "semilla": 20261105,
+  "fuentes": [
+    {
+      "dia": "Monday-WorkingHours",
+      "ruta": "C:\\Users\\i21327\\Desktop\\TesisF\\segmentos_verificados_v2\\Monday-WorkingHours\\candidatos_binarios.csv",
+      "sha256": "04ed2f39390160dc97df04000fd217388386eeb386fb749cfe9610606d282f07",
+      "filas": 97693,
+      "pcap_sha256": "f6eac599358f216b074338813a1cf7be3cc4e91d116e13efc0dc71f2cca11972"
+    },
+    {
+      "dia": "Tuesday-WorkingHours",
+      "ruta": "C:\\Users\\i21327\\Desktop\\TesisF\\segmentos_verificados_v2\\Tuesday-WorkingHours\\candidatos_binarios.csv",
+      "sha256": "b0b5f4fc79f5bf0a86b8858b7733b1fbb6d797ca53726e65a1057739bb86127b",
+      "filas": 90265,
+      "pcap_sha256": "080c2250154c5a174c03660ed0f75a3858d41a27511ba716e780d7bcb1ec4c57"
+    },
+    {
+      "dia": "Wednesday-workingHours",
+      "ruta": "C:\\Users\\i21327\\Desktop\\TesisF\\segmentos_verificados_v2\\Wednesday-workingHours\\candidatos_binarios.csv",
+      "sha256": "6a86f875ac9373cd7045ea474cf1b0d693fe37befb38b23daaeacec95a46b568",
+      "filas": 204611,
+      "pcap_sha256": "cd2674db7559a53f24bc03be3239b315700174ccaef72d10f5edc4c1a08f6186"
+    },
+    {
+      "dia": "Thursday-WorkingHours",
+      "ruta": "C:\\Users\\i21327\\Desktop\\TesisF\\segmentos_verificados_v2\\Thursday-WorkingHours\\candidatos_binarios.csv",
+      "sha256": "a847a3d1fa027e691e53b9b245edb1a87c83c146424b1687c628e49871be1d81",
+      "filas": 72183,
+      "pcap_sha256": "38f8b1bb276849bf1721f7c4de22bebfa7f59a74e52286d4c0a37edbb118fe01"
+    },
+    {
+      "dia": "Friday-WorkingHours",
+      "ruta": "C:\\Users\\i21327\\Desktop\\TesisF\\segmentos_verificados_v2\\Friday-WorkingHours\\candidatos_binarios.csv",
+      "sha256": "ac99580709702d90f4b9c81093f1813993ed515663227a155f3a2e029340465e",
+      "filas": 165511,
+      "pcap_sha256": "beff0dcce1eebc9b2454582f4dc8ed0ba0112b2c619a710bf03af93147254cd0"
+    }
+  ],
+  "etiquetas": {
+    "No Cifrado": 0,
+    "Cifrado": 1
+  },
+  "features": [
+    "Protocol",
+    "Flow Duration",
+    "Total Fwd Packet",
+    "Total Bwd packets",
+    "Total Length of Fwd Packet",
+    "Total Length of Bwd Packet",
+    "Fwd Packet Length Max",
+    "Fwd Packet Length Min",
+    "Fwd Packet Length Mean",
+    "Fwd Packet Length Std",
+    "Bwd Packet Length Max",
+    "Bwd Packet Length Min",
+    "Bwd Packet Length Mean",
+    "Bwd Packet Length Std",
+    "Flow Bytes/s",
+    "Flow Packets/s",
+    "Flow IAT Mean",
+    "Flow IAT Std",
+    "Flow IAT Max",
+    "Flow IAT Min",
+    "Fwd IAT Total",
+    "Fwd IAT Mean",
+    "Fwd IAT Std",
+    "Fwd IAT Max",
+    "Fwd IAT Min",
+    "Bwd IAT Total",
+    "Bwd IAT Mean",
+    "Bwd IAT Std",
+    "Bwd IAT Max",
+    "Bwd IAT Min",
+    "Fwd PSH Flags",
+    "Fwd Header Length",
+    "Bwd Header Length",
+    "Fwd Packets/s",
+    "Bwd Packets/s",
+    "Packet Length Min",
+    "Packet Length Max",
+    "Packet Length Mean",
+    "Packet Length Std",
+    "Packet Length Variance",
+    "FIN Flag Count",
+    "SYN Flag Count",
+    "RST Flag Count",
+    "PSH Flag Count",
+    "ACK Flag Count",
+    "Down/Up Ratio",
+    "Average Packet Size",
+    "Fwd Segment Size Avg",
+    "Bwd Segment Size Avg",
+    "Bwd Packet/Bulk Avg",
+    "Bwd Bulk Rate Avg",
+    "Subflow Fwd Packets",
+    "Subflow Fwd Bytes",
+    "Subflow Bwd Bytes",
+    "FWD Init Win Bytes",
+    "Bwd Init Win Bytes",
+    "Fwd Act Data Pkts",
+    "Fwd Seg Size Min",
+    "Idle Mean",
+    "Idle Std",
+    "Idle Max",
+    "Idle Min"
+  ],
+  "politica": "Vectores exactos unicos; conflictos excluidos; sesiones conectadas por vectores compartidos; hash 70/15/15.",
+  "limites": [
+    "Solo TCP HTTP/FTP_control/TLS/SSH verificado.",
+    "Protocol constante 6 conservado por compatibilidad.",
+    "No es un holdout temporal ni por host; dependencia entre conexiones aun posible.",
+    "Deduplicacion cambia la distribucion; evaluar tambien por protocolo.",
+    "No escala ni entrena. Ajustar scaler nuevo solo con train."
+  ],
+  "creado_utc": "2026-11-06T00:10:23.779486+00:00",
+  "estadisticas": {
+    "filas_candidatas": 630263,
+    "repeticiones_vector": 3507
+  },
+  "valores_negativos_por_feature": {},
+  "particiones": {
+    "train": {
+      "1": 195656,
+      "0": 243117
+    },
+    "validacion": {
+      "0": 51985,
+      "1": 41997
+    },
+    "prueba": {
+      "1": 42411,
+      "0": 51590
+    }
+  },
+  "desglose_por_dia_protocolo": {
+    "train": {
+      "Tuesday-WorkingHours|TLS|Cifrado": 39036,
+      "Wednesday-workingHours|HTTP|No Cifrado": 105051,
+      "Friday-WorkingHours|HTTP|No Cifrado": 83598,
+      "Tuesday-WorkingHours|HTTP|No Cifrado": 15832,
+      "Monday-WorkingHours|HTTP|No Cifrado": 18267,
+      "Monday-WorkingHours|TLS|Cifrado": 49688,
+      "Friday-WorkingHours|TLS|Cifrado": 32070,
+      "Thursday-WorkingHours|TLS|Cifrado": 34809,
+      "Wednesday-workingHours|TLS|Cifrado": 37954,
+      "Thursday-WorkingHours|HTTP|No Cifrado": 15468,
+      "Tuesday-WorkingHours|SSH|Cifrado": 2051,
+      "Thursday-WorkingHours|FTP_control|No Cifrado": 354,
+      "Tuesday-WorkingHours|FTP_control|No Cifrado": 3514,
+      "Friday-WorkingHours|FTP_control|No Cifrado": 339,
+      "Wednesday-workingHours|FTP_control|No Cifrado": 361,
+      "Monday-WorkingHours|FTP_control|No Cifrado": 333,
+      "Wednesday-workingHours|SSH|Cifrado": 13,
+      "Monday-WorkingHours|SSH|Cifrado": 18,
+      "Friday-WorkingHours|SSH|Cifrado": 11,
+      "Thursday-WorkingHours|SSH|Cifrado": 6
+    },
+    "validacion": {
+      "Friday-WorkingHours|HTTP|No Cifrado": 17631,
+      "Thursday-WorkingHours|HTTP|No Cifrado": 3311,
+      "Monday-WorkingHours|TLS|Cifrado": 10753,
+      "Wednesday-workingHours|HTTP|No Cifrado": 22535,
+      "Thursday-WorkingHours|TLS|Cifrado": 7466,
+      "Friday-WorkingHours|TLS|Cifrado": 6855,
+      "Tuesday-WorkingHours|HTTP|No Cifrado": 3471,
+      "Monday-WorkingHours|HTTP|No Cifrado": 3915,
+      "Tuesday-WorkingHours|TLS|Cifrado": 8507,
+      "Tuesday-WorkingHours|SSH|Cifrado": 442,
+      "Wednesday-workingHours|TLS|Cifrado": 7953,
+      "Tuesday-WorkingHours|FTP_control|No Cifrado": 844,
+      "Friday-WorkingHours|FTP_control|No Cifrado": 61,
+      "Monday-WorkingHours|FTP_control|No Cifrado": 51,
+      "Thursday-WorkingHours|FTP_control|No Cifrado": 75,
+      "Wednesday-workingHours|FTP_control|No Cifrado": 91,
+      "Wednesday-workingHours|SSH|Cifrado": 5,
+      "Monday-WorkingHours|SSH|Cifrado": 5,
+      "Friday-WorkingHours|SSH|Cifrado": 4,
+      "Thursday-WorkingHours|SSH|Cifrado": 7
+    },
+    "prueba": {
+      "Monday-WorkingHours|TLS|Cifrado": 10639,
+      "Tuesday-WorkingHours|TLS|Cifrado": 8688,
+      "Thursday-WorkingHours|HTTP|No Cifrado": 3203,
+      "Friday-WorkingHours|HTTP|No Cifrado": 17682,
+      "Thursday-WorkingHours|TLS|Cifrado": 7351,
+      "Tuesday-WorkingHours|HTTP|No Cifrado": 3303,
+      "Friday-WorkingHours|TLS|Cifrado": 7122,
+      "Wednesday-workingHours|HTTP|No Cifrado": 22361,
+      "Wednesday-workingHours|TLS|Cifrado": 8135,
+      "Monday-WorkingHours|HTTP|No Cifrado": 3921,
+      "Tuesday-WorkingHours|SSH|Cifrado": 464,
+      "Tuesday-WorkingHours|FTP_control|No Cifrado": 828,
+      "Friday-WorkingHours|FTP_control|No Cifrado": 73,
+      "Thursday-WorkingHours|FTP_control|No Cifrado": 77,
+      "Monday-WorkingHours|FTP_control|No Cifrado": 68,
+      "Wednesday-workingHours|FTP_control|No Cifrado": 74,
+      "Monday-WorkingHours|SSH|Cifrado": 6,
+      "Friday-WorkingHours|SSH|Cifrado": 4,
+      "Thursday-WorkingHours|SSH|Cifrado": 1,
+      "Wednesday-workingHours|SSH|Cifrado": 1
+    }
+  },
+  "componentes_conservados": 580266,
+  "mayor_componente_vectores": 108,
+  "controles": {
+    "62_features_en_orden": true,
+    "ambas_clases_en_cada_particion": true,
+    "vectores_y_componentes_sin_cruce": true
+  },
+  "listo_para_revisar": true
+}
